@@ -1,1 +1,1379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEODISSTRACK BEAT PRODUCTION</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0f;
+            color: #f3f4f6;
+        }
+        .apple-transition {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes rotateHourglass {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-hourglass {
+            animation: rotateHourglass 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden relative">
 
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 border border-neutral-800 text-white px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-4 translate-y-[-150%] opacity-0 apple-transition">
+        <span class="font-medium" id="toast-text">Dein Beat wird hochgeladen..</span>
+        <i id="toast-icon" data-lucide="hourglass" class="text-blue-500 animate-hourglass w-5 h-5"></i>
+    </div>
+
+    <!-- Fehler-Frame -->
+    <div id="error-toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-red-950/90 border border-red-800/50 text-red-200 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3 translate-y-[-150%] opacity-0 apple-transition">
+        <i data-lucide="alert-circle" class="text-red-500 w-5 h-5"></i>
+        <span class="font-medium" id="error-toast-text">Du hast leider nicht genug Beat coins um dir diesen Beat zu kaufen!:(</span>
+    </div>
+
+    <!-- SUCCESS TOAST -->
+    <div id="success-toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-950/90 border border-green-800/50 text-green-200 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3 translate-y-[-150%] opacity-0 apple-transition">
+        <i data-lucide="check-circle" class="text-green-500 w-5 h-5"></i>
+        <span class="font-medium" id="success-toast-text">Erfolgreich gekauft!</span>
+    </div>
+
+    <!-- ================= AUTH GATE (REGISTRIEREN / LOGIN) ================= -->
+    <div id="auth-gate" class="fixed inset-0 bg-[#0b0b0f] z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-neutral-950 border border-neutral-900 rounded-3xl p-8 shadow-2xl apple-transition">
+            
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3">
+                    <i data-lucide="disc" class="text-white w-7 h-7 animate-spin" style="animation-duration: 10s;"></i>
+                </div>
+                <h2 class="text-xs font-bold tracking-widest text-neutral-500 uppercase">LEODISSTRACK</h2>
+            </div>
+
+            <!-- REGISTRIEREN -->
+            <div id="auth-register" class="space-y-6">
+                <h3 class="text-xl font-bold tracking-tight text-white text-center">REGISTRIEREN</h3>
+                <form onsubmit="handleRegister(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-400 mb-1.5">Name</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-green-500">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                            </span>
+                            <input type="text" id="reg-username" required placeholder="Dein Benutzername" class="w-full bg-neutral-900 text-sm pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-green-500 text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-400 mb-1.5">Passwort (4-10 Zeichen)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500">
+                                <i data-lucide="key-round" class="w-5 h-5"></i>
+                            </span>
+                            <input type="password" id="reg-password" minlength="4" maxlength="10" required placeholder="••••••••" class="w-full bg-neutral-900 text-sm pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-green-600/10 apple-transition">
+                        Account erstellen
+                    </button>
+                </form>
+                <p class="text-center text-xs text-neutral-500">
+                    Du hast schon einen Account? 
+                    <button onclick="toggleAuthMode(true)" class="text-blue-400 hover:underline font-semibold ml-1">Hier einloggen.</button>
+                </p>
+            </div>
+
+            <!-- LOGIN -->
+            <div id="auth-login" class="space-y-6 hidden">
+                <h3 class="text-xl font-bold tracking-tight text-white text-center">LOG-IN</h3>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-400 mb-1.5">Name</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-green-500">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                            </span>
+                            <input type="text" id="login-username" required placeholder="Dein Benutzername" class="w-full bg-neutral-900 text-sm pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-green-500 text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-neutral-400 mb-1.5">Passwort</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500">
+                                <i data-lucide="key-round" class="w-5 h-5"></i>
+                            </span>
+                            <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-neutral-900 text-sm pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-600/10 apple-transition">
+                        Anmelden
+                    </button>
+                </form>
+                <p class="text-center text-xs text-neutral-500">
+                    Noch kein Account? 
+                    <button onclick="toggleAuthMode(false)" class="text-green-400 hover:underline font-semibold ml-1">Erstell hier einen.</button>
+                </p>
+            </div>
+
+            <p id="auth-error" class="text-red-500 text-xs text-center mt-4 hidden font-medium"></p>
+        </div>
+    </div>
+
+    <!-- ================= HAUPT-WEBSITE ================= -->
+    <div id="app-content" class="hidden flex-col min-h-screen">
+        
+        <!-- HEADER -->
+        <header class="border-b border-neutral-900 bg-neutral-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showView('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="disc" class="text-white w-6 h-6 animate-spin" style="animation-duration: 8s;"></i>
+                    </div>
+                    <h1 class="text-lg font-bold tracking-wider bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
+                        LEODISSTRACK BEAT PRODUCTION
+                    </h1>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex items-center gap-2 bg-neutral-900/50 p-1 rounded-xl border border-neutral-800/60">
+                    <button onclick="showView('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-white bg-neutral-800 flex items-center gap-2" id="btn-home">
+                        <i data-lucide="home" class="w-4 h-4"></i> Startseite
+                    </button>
+                    
+                    <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> Beat hochladen
+                    </button>
+                    <button onclick="showView('coins')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-coins">
+                        <i data-lucide="users" class="w-4 h-4"></i> Admin Panel
+                    </button>
+                </nav>
+
+                <!-- Rechts: Suchfeld, Coins & Profil -->
+                <div class="flex items-center gap-4 w-full md:w-auto justify-end">
+                    <div class="relative w-full md:w-48 lg:w-64">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 w-4 h-4"></i>
+                        <input type="text" id="search-input" oninput="searchBeats()" placeholder="Beats suchen..." class="w-full bg-neutral-900 text-sm pl-9 pr-4 py-2 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white placeholder-neutral-500">
+                    </div>
+
+                    <!-- Coins -->
+                    <div class="flex items-center gap-2 bg-neutral-900/80 border border-neutral-800 px-3 py-2 rounded-xl">
+                        <i data-lucide="coins" class="text-neutral-400 w-4 h-4"></i>
+                        <span id="global-coins" class="text-sm font-bold text-neutral-200">0</span>
+                    </div>
+
+                    <!-- Profil Name, Dropdown & Logout -->
+                    <div class="flex items-center gap-3 pl-2 border-l border-neutral-800 relative">
+                        <!-- Profilbild / Avatar -->
+                        <img id="header-avatar" src="" class="w-9 h-9 rounded-full bg-neutral-800 border border-neutral-700 object-cover cursor-pointer hover:border-neutral-500 apple-transition" onclick="toggleProfileDropdown()">
+                        
+                        <div class="text-right hidden sm:block cursor-pointer" onclick="toggleProfileDropdown()">
+                            <p class="text-xs text-neutral-500 flex items-center justify-end gap-1">Angemeldet als <i data-lucide="chevron-down" class="w-3 h-3"></i></p>
+                            <p class="text-sm font-semibold text-white" id="profile-name-display"></p>
+                        </div>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profile-dropdown" class="absolute right-0 top-12 mt-2 w-48 bg-neutral-950 border border-neutral-900 rounded-2xl shadow-2xl py-2 z-50 hidden opacity-0 translate-y-2 apple-transition">
+                            <button onclick="showView('settings'); toggleProfileDropdown();" class="w-full text-left px-4 py-2.5 text-sm text-neutral-300 hover:text-white hover:bg-neutral-900 flex items-center gap-2.5">
+                                <i data-lucide="settings" class="w-4 h-4 text-neutral-400"></i> Einstellungen
+                            </button>
+                            <div class="border-t border-neutral-900 my-1"></div>
+                            <button onclick="logout(); toggleProfileDropdown();" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-950/10 flex items-center gap-2.5">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Abmelden
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-grow max-w-7xl w-full mx-auto p-6 pb-24">
+            
+            <!-- ================= VIEW 1: STARTSEITE ================= -->
+            <section id="view-home" class="view-section">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-white">Aktuelle Releases</h2>
+                        <p class="text-neutral-400 text-sm mt-1">Finde die perfekten Instrumentals für dein nächstes Projekt.</p>
+                    </div>
+                </div>
+
+                <!-- Beat Grid -->
+                <div id="beat-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                
+                <!-- Leer-Platzhalter -->
+                <div id="no-beats-placeholder" class="text-center py-24 border border-neutral-900 rounded-3xl bg-neutral-950/20 flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-2xl bg-neutral-900/80 border border-neutral-800/50 flex items-center justify-center mb-4">
+                        <i data-lucide="music-3" class="w-8 h-8 text-neutral-500"></i>
+                    </div>
+                    <p class="text-neutral-300 font-medium text-lg max-w-md px-6">
+                        Bisher hat Leo keine Beats hochgeladen die du nutzen darfst.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 2: BEAT HOCHLADEN ================= -->
+            <section id="view-upload" class="view-section hidden max-w-2xl mx-auto">
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-6 uppercase tracking-wider text-center text-blue-500">Datei hochladen</h2>
+                    
+                    <form onsubmit="handleUpload(event)" class="space-y-6">
+                        <!-- Audio -->
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Audio-Datei (MP3, WAV, FLAC)</label>
+                            <div class="border-2 border-dashed border-neutral-800 hover:border-neutral-700 rounded-2xl p-6 text-center cursor-pointer apple-transition relative group bg-neutral-900/20">
+                                <input type="file" id="audio-file" accept=".mp3,.wav,.flac" required class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this, 'audio-label')">
+                                <div class="space-y-2">
+                                    <i data-lucide="music-4" class="w-8 h-8 text-neutral-500 mx-auto group-hover:text-blue-500 apple-transition"></i>
+                                    <p id="audio-label" class="text-sm text-neutral-400">Klicke hier, um eine Audiodatei auszuwählen</p>
+                                    <p class="text-xs text-neutral-600">Unterstützte Formate: .mp3, .wav, .flac</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cover & Title -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Cover -->
+                            <div>
+                                <label class="block text-sm font-medium text-neutral-300 mb-2">Cover Bild (PNG, JPG)</label>
+                                <div class="aspect-square border-2 border-dashed border-neutral-800 hover:border-neutral-700 rounded-2xl flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group bg-neutral-900/20">
+                                    <input type="file" id="cover-image" accept=".png,.jpg,.jpeg" required class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewCover(this)">
+                                    <img id="cover-preview" class="absolute inset-0 w-full h-full object-cover hidden">
+                                    <div id="cover-placeholder" class="space-y-2 text-center p-4">
+                                        <i data-lucide="image" class="w-8 h-8 text-neutral-500 mx-auto group-hover:text-blue-500 apple-transition"></i>
+                                        <p class="text-xs text-neutral-400">Bild wählen</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Title & Lizenz -->
+                            <div class="flex flex-col justify-between space-y-4">
+                                <div>
+                                    <label for="beat-title" class="block text-sm font-medium text-neutral-300 mb-2">BEAT TITLE</label>
+                                    <input type="text" id="beat-title" required placeholder="Nenne deinen Beat..." class="w-full bg-neutral-900 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-neutral-300 mb-2">Lizenztyp</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment-type" value="kostenlos" checked class="sr-only peer" onchange="toggleCostField(false)">
+                                            <div class="flex items-center justify-center gap-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl peer-checked:border-blue-500 peer-checked:bg-blue-500/10 text-neutral-400 peer-checked:text-blue-400 apple-transition">
+                                                <i data-lucide="gift" class="w-4 h-4"></i>
+                                                <span class="text-sm font-semibold">Kostenlos</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="payment-type" value="coins" class="sr-only peer" onchange="toggleCostField(true)">
+                                            <div class="flex items-center justify-center gap-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl peer-checked:border-green-500 peer-checked:bg-green-500/10 text-neutral-400 peer-checked:text-green-400 apple-transition">
+                                                <i data-lucide="circle-dollar-sign" class="w-4 h-4"></i>
+                                                <span class="text-sm font-semibold">Beat Coins</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COIN PREIS FRAME -->
+                        <div id="cost-frame" class="hidden bg-neutral-900 border border-neutral-800 p-6 rounded-2xl apple-transition">
+                            <label class="block text-sm font-bold text-center text-green-400 mb-3 uppercase tracking-wider">WIE VIEL SOLL DER BEAT KOSTEN?</label>
+                            <div class="relative max-w-xs mx-auto">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">🪙</span>
+                                <input type="number" id="beat-cost" min="1" max="900" placeholder="z.B. 329" class="w-full bg-neutral-950 text-center text-lg font-bold py-3 px-10 rounded-xl border border-neutral-800 focus:outline-none focus:border-green-500 text-white">
+                            </div>
+                            <p class="text-center text-xs text-neutral-500 mt-2">Erlaubt sind Preise zwischen 1 und 900 Beat Coins.</p>
+                        </div>
+
+                        <!-- Speichern Button -->
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                            <i data-lucide="save" class="w-5 h-5 text-white"></i>
+                            SPEICHERN
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 3: ADMIN PANEL (COINS & USER VERWALTUNG) ================= -->
+            <section id="view-coins" class="view-section hidden max-w-4xl mx-auto space-y-8">
+                
+                <!-- Liste aktiver Profile -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="users" class="text-yellow-500 w-6 h-6"></i> Aktive User verwalten
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Vergebe Coins, deaktiviere Accounts oder ernenne sie zu Creatoren.</p>
+                    <div class="space-y-4" id="users-list"></div>
+                </div>
+
+                <!-- Dynamisches Frame: Deaktivierte Accounts -->
+                <div id="deactivated-container" class="bg-neutral-950 border border-red-950/40 rounded-3xl p-8 shadow-2xl hidden">
+                    <h2 class="text-xl font-bold tracking-tight text-red-400 mb-2 flex items-center gap-2">
+                        <i data-lucide="user-x" class="text-red-500 w-6 h-6"></i> DEAKTIVIERTE ACCOUNTS
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Diese Profile haben derzeit keinen Zugriff mehr auf das System.</p>
+                    <div class="space-y-4" id="deactivated-users-list"></div>
+                </div>
+
+                <!-- Dynamisches Frame: Creator-Liste -->
+                <div id="creator-container" class="bg-neutral-950 border border-blue-950/40 rounded-3xl p-8 shadow-2xl hidden">
+                    <h2 class="text-xl font-bold tracking-tight text-blue-400 mb-2 flex items-center gap-2">
+                        <i data-lucide="star" class="text-blue-400 w-6 h-6"></i> ALLE CREATOR USER
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">User, deren Name als Gutscheincode für 230 Münzen fungiert.</p>
+                    <div class="space-y-4" id="creators-list"></div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 4: EINSTELLUNGEN ================= -->
+            <section id="view-settings" class="view-section hidden max-w-xl mx-auto">
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl apple-transition">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-6 uppercase tracking-wider text-center text-blue-500 flex items-center justify-center gap-2">
+                        <i data-lucide="settings" class="w-5 h-5"></i> Einstellungen
+                    </h2>
+
+                    <form onsubmit="handleSaveSettings(event)" class="space-y-6">
+                        <!-- Profil ändern (Avatar Upload) -->
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Profilbild ändern</label>
+                            <div class="flex items-center gap-4">
+                                <img id="settings-avatar-preview" src="" class="w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 object-cover">
+                                <div class="relative flex-grow">
+                                    <input type="file" id="settings-avatar-file" accept=".png,.jpg,.jpeg" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewSettingsAvatar(this)">
+                                    <div class="bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-center py-3 rounded-xl text-sm text-neutral-300 apple-transition">
+                                        Neues Bild wählen (.png, .jpg)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Namen ändern -->
+                        <div>
+                            <label for="settings-username" class="block text-sm font-medium text-neutral-300 mb-2">Namen ändern</label>
+                            <input type="text" id="settings-username" required class="w-full bg-neutral-900 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white font-medium">
+                        </div>
+
+                        <!-- Creator Code Sektion (Nur sichtbar wenn Creator) -->
+                        <div id="settings-creator-section" class="hidden border-t border-neutral-900 pt-6 space-y-4">
+                            <p class="text-sm font-bold text-green-400 text-center uppercase tracking-wider">Super du hast einen Creator Code bekommen!</p>
+                            <div>
+                                <label for="settings-creator-code" class="block text-sm font-medium text-neutral-300 mb-2">Creator Code ändern</label>
+                                <input type="text" id="settings-creator-code" placeholder="DEIN_CODE" class="w-full bg-neutral-900 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white font-bold uppercase tracking-widest">
+                                <p id="creator-cooldown-info" class="text-xs text-neutral-500 mt-1.5"></p>
+                            </div>
+                        </div>
+
+                        <!-- Speichern Button -->
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                            <i data-lucide="send" class="w-5 h-5 text-white"></i>
+                            Speichern
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FLOATING ACTION BUTTON: CREATOR CODE EINGEBEN -->
+        <div class="fixed bottom-6 right-6 z-40">
+            <button onclick="openCreatorModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-4 rounded-full shadow-2xl shadow-green-600/20 apple-transition hover:scale-105">
+                <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+                Creator Code eingeben
+            </button>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-neutral-900 py-6 text-center text-xs text-neutral-600 mt-auto">
+            &copy; 2026 LEODISSTRACK BEAT PRODUCTION. Alle Rechte vorbehalten.
+        </footer>
+    </div>
+
+    <!-- ================= BEAT PROFILE DETAILS MODAL ================= -->
+    <div id="beat-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
+        <div class="w-full max-w-xl bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
+            <button onclick="closeBeatModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <!-- Links: Cover -->
+                <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative">
+                    <img id="modal-cover" src="" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Rechts: Infos & Buttons -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 id="modal-title" class="text-2xl font-bold text-white tracking-wide"></h3>
+                        <p id="modal-file-type" class="text-sm text-neutral-500 mt-1 uppercase"></p>
+                    </div>
+
+                    <div id="modal-badge-container"></div>
+
+                    <!-- Button Container für Optionen -->
+                    <div class="space-y-3 pt-4 border-t border-neutral-900" id="modal-buttons-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CREATOR CODE INPUT MODAL ================= -->
+    <div id="creator-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
+        <div class="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
+            <button onclick="closeCreatorModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="space-y-6 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-center mx-auto shadow-lg shadow-green-500/5">
+                    <i data-lucide="banknote" class="text-green-500 w-8 h-8"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-extrabold tracking-wider text-white uppercase">CREATOR CODE EINGEBEN</h3>
+                    <p class="text-neutral-500 text-xs mt-1">Sichere dir 230 gratis Münzen für deinen nächsten Beat!</p>
+                </div>
+
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-green-500">
+                        <i data-lucide="coins" class="w-5 h-5"></i>
+                    </span>
+                    <input type="text" id="creator-code-input" placeholder="CODE HIER EINGEBEN" class="w-full bg-neutral-900 text-center font-bold tracking-widest uppercase pl-12 pr-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-green-500 text-white">
+                </div>
+
+                <button onclick="submitCreatorCode()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-green-600/10 apple-transition">
+                    Code einlösen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIK ================= -->
+    <script>
+        let beats = [];
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let creators = JSON.parse(localStorage.getItem('creators')) || ["LeoDisstrack-YT"]; // Standard Creator Code
+        let currentUser = null;
+        let selectedBeatForModal = null;
+
+        const OWNER_NAME = "LeoDisstrack-YT2";
+
+        // --- INDEXEDDB SETUP FÜR GROßE AUDIODATEIEN ---
+        const dbName = "BeatProductionDB";
+        const storeName = "beats";
+        let db;
+
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = function(e) {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(storeName)) {
+                        database.createObjectStore(storeName, { keyPath: "id" });
+                    }
+                };
+                request.onsuccess = function(e) {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = function(e) {
+                    reject(e);
+                };
+            });
+        }
+
+        function saveBeatToDB(beat) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.put(beat);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function loadBeatsFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function deleteBeatFromDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // Prüft automatischen Login und initialisiert die DB
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initIndexedDB();
+                beats = await loadBeatsFromDB();
+            } catch (err) {
+                console.error("IndexedDB konnte nicht geladen werden:", err);
+            }
+
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+                const dbUser = users.find(u => u.username === parsed.username);
+                if (dbUser) {
+                    if (dbUser.deactivated) {
+                        localStorage.removeItem('currentUser');
+                    } else {
+                        loginUser(dbUser);
+                    }
+                } else if (parsed.username === OWNER_NAME) {
+                    loginUser(parsed);
+                } else {
+                    localStorage.removeItem('currentUser');
+                }
+            }
+            lucide.createIcons();
+            
+            // Klick-Event um Dropdown zu schließen wenn man außerhalb klickt
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('profile-dropdown');
+                const avatar = document.getElementById('header-avatar');
+                const textDisplay = document.getElementById('profile-name-display');
+                if (dropdown && !dropdown.classList.contains('hidden')) {
+                    if (!avatar.contains(event.target) && !textDisplay.contains(event.target)) {
+                        toggleProfileDropdown(false);
+                    }
+                }
+            });
+        });
+
+        // Toggle Cost Frame beim Hochladen
+        function toggleCostField(show) {
+            const costFrame = document.getElementById('cost-frame');
+            if (show) {
+                costFrame.classList.remove('hidden');
+                document.getElementById('beat-cost').setAttribute('required', 'true');
+            } else {
+                costFrame.classList.add('hidden');
+                document.getElementById('beat-cost').removeAttribute('required');
+            }
+        }
+
+        // --- PROFILE DROPDOWN ---
+        function toggleProfileDropdown(forceState) {
+            const dropdown = document.getElementById('profile-dropdown');
+            const show = forceState !== undefined ? forceState : dropdown.classList.contains('hidden');
+
+            if (show) {
+                dropdown.classList.remove('hidden');
+                setTimeout(() => {
+                    dropdown.classList.remove('opacity-0', 'translate-y-2');
+                }, 50);
+            } else {
+                dropdown.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    dropdown.classList.add('hidden');
+                }, 400);
+            }
+        }
+
+        // --- AUTH LOGIK ---
+        function toggleAuthMode(showLogin) {
+            const registerForm = document.getElementById('auth-register');
+            const loginForm = document.getElementById('auth-login');
+            const errorText = document.getElementById('auth-error');
+            errorText.classList.add('hidden');
+
+            if (showLogin) {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            } else {
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('reg-username').value.trim();
+            const passwordInput = document.getElementById('reg-password').value;
+
+            if (usernameInput === OWNER_NAME) {
+                if (localStorage.getItem('owner_registered') && localStorage.getItem('is_true_owner') !== 'true') {
+                    showAuthError("Du bist nicht der owner dieser website.");
+                    return;
+                } else {
+                    localStorage.setItem('is_true_owner', 'true');
+                    localStorage.setItem('owner_registered', 'true');
+                }
+            }
+
+            const userExists = users.find(u => u.username.toLowerCase() === usernameInput.toLowerCase());
+            if (userExists) {
+                if (userExists.deactivated) {
+                    showAuthError("Dein Account wurde deaktiviert.");
+                } else {
+                    showAuthError("Dieser Benutzername existiert bereits!");
+                }
+                return;
+            }
+
+            if (passwordInput.length < 4 || passwordInput.length > 10) {
+                showAuthError("Das Passwort muss zwischen 4 und 10 Zeichen lang sein.");
+                return;
+            }
+
+            const newUser = {
+                username: usernameInput,
+                password: passwordInput,
+                coins: usernameInput === OWNER_NAME ? Infinity : 0,
+                avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
+                deactivated: false,
+                lastCreatorCodeChange: null
+            };
+
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            loginUser(newUser);
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('login-username').value.trim();
+            const passwordInput = document.getElementById('login-password').value;
+
+            if (usernameInput === OWNER_NAME) {
+                if (localStorage.getItem('is_true_owner') !== 'true' && localStorage.getItem('owner_registered')) {
+                    showAuthError("Du bist nicht der owner dieser website.");
+                    return;
+                }
+            }
+
+            const foundUser = users.find(u => u.username.toLowerCase() === usernameInput.toLowerCase());
+            if (!foundUser) {
+                showAuthError("Benutzer nicht gefunden.");
+                return;
+            }
+
+            if (foundUser.deactivated) {
+                showAuthError("Dein Account wurde deaktiviert.");
+                return;
+            }
+
+            if (foundUser.password !== passwordInput) {
+                showAuthError("Falsches Passwort.");
+                return;
+            }
+
+            loginUser(foundUser);
+        }
+
+        function showAuthError(message) {
+            const errorText = document.getElementById('auth-error');
+            errorText.innerText = message;
+            errorText.classList.remove('hidden');
+        }
+
+        function loginUser(user) {
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            
+            document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('flex');
+
+            document.getElementById('profile-name-display').innerText = user.username;
+            document.getElementById('header-avatar').src = user.avatar;
+
+            // Admin Buttons anzeigen, falls Admin
+            if (user.username === OWNER_NAME) {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            } else {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            }
+
+            updateCoinsDisplay();
+            renderBeats();
+            renderUsers();
+            showView('home');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('app-content').classList.remove('flex');
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('auth-gate').classList.remove('hidden');
+            document.getElementById('reg-username').value = '';
+            document.getElementById('reg-password').value = '';
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            toggleAuthMode(true);
+        }
+
+        function updateCoinsDisplay() {
+            const globalCoinsSpan = document.getElementById('global-coins');
+            if (currentUser) {
+                globalCoinsSpan.innerText = currentUser.username === OWNER_NAME ? "∞" : currentUser.coins;
+            }
+        }
+
+        // --- NAVIGATION LOGIK ---
+        function showView(viewName) {
+            document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-white', 'bg-neutral-800');
+                btn.classList.add('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+            });
+
+            if (viewName === 'home') {
+                document.getElementById('view-home').classList.remove('hidden');
+                document.getElementById('btn-home').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-home').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+            } else if (viewName === 'upload') {
+                document.getElementById('view-upload').classList.remove('hidden');
+                document.getElementById('btn-upload').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-upload').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+            } else if (viewName === 'coins') {
+                document.getElementById('view-coins').classList.remove('hidden');
+                document.getElementById('btn-coins').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-coins').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+                renderUsers();
+            } else if (viewName === 'settings') {
+                document.getElementById('view-settings').classList.remove('hidden');
+                prepareSettingsView();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- EINSTELLUNGEN LOGIK ---
+        let tempAvatarData = null;
+
+        function prepareSettingsView() {
+            tempAvatarData = null;
+            document.getElementById('settings-username').value = currentUser.username;
+            document.getElementById('settings-avatar-preview').src = currentUser.avatar;
+            document.getElementById('settings-avatar-file').value = "";
+
+            const isCreator = creators.includes(currentUser.username);
+            const creatorSection = document.getElementById('settings-creator-section');
+            const codeInput = document.getElementById('settings-creator-code');
+            const cooldownInfo = document.getElementById('creator-cooldown-info');
+
+            if (isCreator) {
+                creatorSection.classList.remove('hidden');
+                codeInput.value = currentUser.username; // Standardmäßig sein Name
+                
+                // Prüfe Cooldown
+                if (currentUser.lastCreatorCodeChange) {
+                    const diffTime = Math.abs(new Date() - new Date(currentUser.lastCreatorCodeChange));
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays <= 3) {
+                        codeInput.setAttribute('disabled', 'true');
+                        cooldownInfo.innerText = `Änderung erst in ${4 - diffDays} Tagen wieder möglich.`;
+                        cooldownInfo.className = "text-xs text-red-400 mt-1.5";
+                    } else {
+                        codeInput.removeAttribute('disabled');
+                        cooldownInfo.innerText = "Erlaubt sind Buchstaben, Zahlen, Punkte (.) und Unterstriche (_).";
+                        cooldownInfo.className = "text-xs text-neutral-500 mt-1.5";
+                    }
+                } else {
+                    codeInput.removeAttribute('disabled');
+                    cooldownInfo.innerText = "Erlaubt sind Buchstaben, Zahlen, Punkte (.) und Unterstriche (_).";
+                    cooldownInfo.className = "text-xs text-neutral-500 mt-1.5";
+                }
+            } else {
+                creatorSection.classList.add('hidden');
+            }
+        }
+
+        function previewSettingsAvatar(input) {
+            const preview = document.getElementById('settings-avatar-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    tempAvatarData = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function handleSaveSettings(event) {
+            event.preventDefault();
+            const newName = document.getElementById('settings-username').value.trim();
+            const isCreator = creators.includes(currentUser.username);
+            const codeInput = document.getElementById('settings-creator-code');
+            const newCode = codeInput.value.trim();
+
+            if (!newName) return;
+
+            if (newName.toLowerCase() !== currentUser.username.toLowerCase()) {
+                const nameTaken = users.some(u => u.username.toLowerCase() === newName.toLowerCase());
+                if (nameTaken) {
+                    showErrorToast("Dieser Name ist leider bereits vergeben!");
+                    return;
+                }
+            }
+
+            if (isCreator && !codeInput.hasAttribute('disabled')) {
+                const regex = /^[A-Za-z0-9._]+$/;
+                if (!regex.test(newCode)) {
+                    showErrorToast("Der Creator Code darf nur Buchstaben, Zahlen, Punkte (.) und Unterstriche (_) enthalten.");
+                    return;
+                }
+
+                const creatorIndex = creators.indexOf(currentUser.username);
+                if (creatorIndex > -1) {
+                    creators[creatorIndex] = newCode;
+                } else {
+                    creators.push(newCode);
+                }
+                currentUser.lastCreatorCodeChange = new Date();
+                localStorage.setItem('creators', JSON.stringify(creators));
+            }
+
+            const oldName = currentUser.username;
+            currentUser.username = newName;
+            if (tempAvatarData) {
+                currentUser.avatar = tempAvatarData;
+            }
+
+            const dbUserIndex = users.findIndex(u => u.username === oldName);
+            if (dbUserIndex > -1) {
+                users[dbUserIndex] = {
+                    ...users[dbUserIndex],
+                    username: currentUser.username,
+                    avatar: currentUser.avatar,
+                    lastCreatorCodeChange: currentUser.lastCreatorCodeChange
+                };
+            }
+
+            // In IndexedDB gekaufte Beats updaten
+            beats.forEach(beat => {
+                const buyIndex = beat.purchasedBy.indexOf(oldName);
+                if (buyIndex > -1) {
+                    beat.purchasedBy[buyIndex] = newName;
+                    saveBeatToDB(beat);
+                }
+            });
+
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            document.getElementById('profile-name-display').innerText = currentUser.username;
+            document.getElementById('header-avatar').src = currentUser.avatar;
+            updateCoinsDisplay();
+            showSuccessToast("Einstellungen erfolgreich gespeichert!");
+            showView('home');
+        }
+
+        // --- HOCHLADEN LOGIK ---
+        function updateFileName(input, labelId) {
+            const label = document.getElementById(labelId);
+            if (input.files && input.files.length > 0) {
+                label.innerText = input.files[0].name;
+            } else {
+                label.innerText = "Klicke hier, um eine Audiodatei auszuwählen";
+            }
+        }
+
+        function previewCover(input) {
+            const preview = document.getElementById('cover-preview');
+            const placeholder = document.getElementById('cover-placeholder');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function handleUpload(event) {
+            event.preventDefault();
+            
+            showToast("Dein Beat wird hochgeladen..", "hourglass");
+
+            const title = document.getElementById('beat-title').value.trim();
+            const audioFile = document.getElementById('audio-file').files[0];
+            const coverImage = document.getElementById('cover-image').files[0];
+            const paymentType = document.querySelector('input[name="payment-type"]:checked').value;
+            const costInput = document.getElementById('beat-cost').value;
+
+            let finalCost = 0;
+            if (paymentType === 'coins') {
+                finalCost = parseInt(costInput);
+                if (isNaN(finalCost) || finalCost < 1 || finalCost > 900) {
+                    hideToast();
+                    showErrorToast("Bitte gib einen Preis zwischen 1 und 900 Coins an.");
+                    return;
+                }
+            }
+
+            const audioReader = new FileReader();
+            const coverReader = new FileReader();
+
+            audioReader.onload = function(eAudio) {
+                coverReader.onload = async function(eCover) {
+                    const newBeat = {
+                        id: 'beat-' + Date.now(),
+                        title: title,
+                        audioData: eAudio.target.result,
+                        audioName: audioFile.name,
+                        coverData: eCover.target.result,
+                        cost: finalCost,
+                        purchasedBy: []
+                    };
+
+                    try {
+                        await saveBeatToDB(newBeat);
+                        beats.push(newBeat);
+                        
+                        hideToast();
+                        showSuccessToast("Beat erfolgreich veröffentlicht!");
+                        document.getElementById('beat-title').value = '';
+                        document.getElementById('audio-file').value = '';
+                        document.getElementById('cover-image').value = '';
+                        document.getElementById('audio-label').innerText = "Klicke hier, um eine Audiodatei auszuwählen";
+                        document.getElementById('cover-preview').classList.add('hidden');
+                        document.getElementById('cover-placeholder').classList.remove('hidden');
+                        renderBeats();
+                        showView('home');
+                    } catch (err) {
+                        hideToast();
+                        showErrorToast("Fehler beim Speichern in IndexedDB.");
+                        console.error(err);
+                    }
+                }
+                coverReader.readAsDataURL(coverImage);
+            }
+            audioReader.readAsDataURL(audioFile);
+        }
+
+        // --- BEAT RENDERING & SUCHE ---
+        function renderBeats() {
+            const grid = document.getElementById('beat-grid');
+            const placeholder = document.getElementById('no-beats-placeholder');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+
+            let filtered = beats.filter(b => b.title.toLowerCase().includes(searchVal));
+
+            if (filtered.length === 0) {
+                grid.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            } else {
+                grid.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                
+                grid.innerHTML = '';
+                filtered.forEach(beat => {
+                    const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+                    
+                    const card = document.createElement('div');
+                    card.className = "bg-neutral-950 border border-neutral-900 rounded-3xl p-5 shadow-xl hover:border-neutral-800/80 apple-transition flex flex-col justify-between";
+                    
+                    card.innerHTML = `
+                        <div>
+                            <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative group cursor-pointer" onclick="openBeatModal('${beat.id}')">
+                                <img src="${beat.coverData}" class="w-full h-full object-cover group-hover:scale-105 apple-transition">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 apple-transition">
+                                    <div class="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                                        <i data-lucide="eye" class="text-white w-6 h-6"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="font-bold text-white text-lg tracking-wide truncate">${beat.title}</h3>
+                                <p class="text-xs text-neutral-500 mt-0.5 truncate">${beat.audioName}</p>
+                            </div>
+                        </div>
+                        <div class="mt-5 flex items-center justify-between border-t border-neutral-900 pt-4">
+                            <span class="text-sm font-bold text-neutral-400">
+                                ${beat.cost === 0 ? '<span class="text-blue-400 font-bold uppercase tracking-wider">Kostenlos</span>' : `🪙 ${beat.cost}`}
+                            </span>
+                            <button onclick="openBeatModal('${beat.id}')" class="px-5 py-2.5 text-xs font-bold rounded-xl ${isPurchased ? 'bg-neutral-900 text-neutral-300 hover:text-white border border-neutral-800' : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/10'} apple-transition">
+                                ${isPurchased ? 'ANHÖREN / LADEN' : 'ERWERBEN'}
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        function searchBeats() {
+            renderBeats();
+        }
+
+        // --- DETAILS / KAUFEN MODAL ---
+        function openBeatModal(beatId) {
+            const beat = beats.find(b => b.id === beatId);
+            if (!beat) return;
+            selectedBeatForModal = beat;
+
+            document.getElementById('modal-cover').src = beat.coverData;
+            document.getElementById('modal-title').innerText = beat.title;
+            document.getElementById('modal-file-type').innerText = beat.audioName.split('.').pop() + "-Format";
+
+            const badgeContainer = document.getElementById('modal-badge-container');
+            const buttonsContainer = document.getElementById('modal-buttons-container');
+
+            badgeContainer.innerHTML = '';
+            buttonsContainer.innerHTML = '';
+
+            const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+
+            if (beat.cost === 0) {
+                badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="gift" class="w-3.5 h-3.5"></i> KOSTENLOSE LIZENZ</span>`;
+            } else {
+                badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20"><i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> ${beat.cost} BEAT COINS</span>`;
+            }
+
+            if (isPurchased) {
+                buttonsContainer.innerHTML = `
+                    <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+                        <audio controls class="w-full" src="${beat.audioData}"></audio>
+                    </div>
+                    <a href="${beat.audioData}" download="${beat.audioName}" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 apple-transition text-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download Starten
+                    </a>
+                `;
+            } else {
+                buttonsContainer.innerHTML = `
+                    <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 apple-transition text-sm shadow-lg shadow-green-600/10">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Für ${beat.cost} Coins freischalten
+                    </button>
+                `;
+            }
+
+            if (currentUser.username === OWNER_NAME) {
+                buttonsContainer.innerHTML += `
+                    <button onclick="deleteBeat('${beat.id}')" class="w-full bg-red-950/40 hover:bg-red-950/60 border border-red-900/30 text-red-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 apple-transition text-xs">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Beat unwiderruflich löschen
+                    </button>
+                `;
+            }
+
+            const modal = document.getElementById('beat-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 50);
+
+            lucide.createIcons();
+        }
+
+        function closeBeatModal() {
+            const modal = document.getElementById('beat-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                selectedBeatForModal = null;
+            }, 400);
+        }
+
+        async function purchaseBeat(beatId) {
+            const beat = beats.find(b => b.id === beatId);
+            if (!beat) return;
+
+            if (currentUser.coins < beat.cost && currentUser.username !== OWNER_NAME) {
+                closeBeatModal();
+                showErrorToast("Du hast leider nicht genug Beat coins um dir diesen Beat zu kaufen!:(");
+                return;
+            }
+
+            if (currentUser.username !== OWNER_NAME) {
+                currentUser.coins -= beat.cost;
+                const dbUser = users.find(u => u.username === currentUser.username);
+                if (dbUser) dbUser.coins = currentUser.coins;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+
+            beat.purchasedBy.push(currentUser.username);
+            await saveBeatToDB(beat);
+
+            updateCoinsDisplay();
+            closeBeatModal();
+            showSuccessToast("Erfolgreich freigeschaltet!");
+            renderBeats();
+        }
+
+        async function deleteBeat(beatId) {
+            if (confirm("Möchtest du diesen Beat wirklich komplett löschen?")) {
+                try {
+                    await deleteBeatFromDB(beatId);
+                    beats = beats.filter(b => b.id !== beatId);
+                    closeBeatModal();
+                    showSuccessToast("Beat gelöscht.");
+                    renderBeats();
+                } catch (err) {
+                    showErrorToast("Fehler beim Löschen des Beats.");
+                    console.error(err);
+                }
+            }
+        }
+
+        // --- ADMIN PANEL LOGIK (COINS & USERS) ---
+        function renderUsers() {
+            const usersList = document.getElementById('users-list');
+            const deactivatedList = document.getElementById('deactivated-users-list');
+            const deactivatedContainer = document.getElementById('deactivated-container');
+            const creatorsList = document.getElementById('creators-list');
+            const creatorContainer = document.getElementById('creator-container');
+
+            usersList.innerHTML = '';
+            deactivatedList.innerHTML = '';
+            creatorsList.innerHTML = '';
+
+            let hasDeactivated = false;
+            let hasCreators = false;
+
+            users.forEach(user => {
+                if (user.username === OWNER_NAME) return;
+
+                const isDeactivated = user.deactivated;
+                const isCreator = creators.includes(user.username);
+
+                const userRow = document.createElement('div');
+                userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
+
+                userRow.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                        <div>
+                            <p class="font-bold text-white">${user.username}</p>
+                            <p class="text-xs text-neutral-500">Münzen: ${user.coins} | Angemeldet</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-neutral-950 border border-neutral-800 px-2 py-1.5 rounded-xl">
+                            <input type="number" id="coins-add-${user.username}" placeholder="Menge" class="w-16 bg-transparent text-xs text-center focus:outline-none text-white font-bold">
+                            <button onclick="modifyUserCoins('${user.username}', true)" class="text-green-500 hover:text-green-400 p-1" title="Münzen hinzufügen">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="modifyUserCoins('${user.username}', false)" class="text-red-500 hover:text-red-400 p-1" title="Münzen abziehen">
+                                <i data-lucide="minus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <button onclick="toggleCreatorStatus('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isCreator ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-transparent' : 'border-neutral-800 hover:border-yellow-500/50 hover:text-yellow-500'} apple-transition flex items-center gap-1.5">
+                            <i data-lucide="star" class="w-3.5 h-3.5"></i> ${isCreator ? 'Creator entziehen' : 'Zu Creator machen'}
+                        </button>
+
+                        <button onclick="toggleUserActivation('${user.username}')" class="p-2 border border-red-950/40 hover:bg-red-950/20 text-red-400 rounded-xl apple-transition" title="Account deaktivieren">
+                            <i data-lucide="user-minus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+
+                if (isDeactivated) {
+                    hasDeactivated = true;
+                    const deactivatedRow = document.createElement('div');
+                    deactivatedRow.className = "flex items-center justify-between p-4 bg-red-950/10 border border-red-900/20 rounded-2xl";
+                    deactivatedRow.innerHTML = `
+                        <div class="flex items-center gap-3 opacity-60">
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div>
+                                <p class="font-bold text-red-200 line-through">${user.username}</p>
+                                <p class="text-xs text-red-400/80">Account gesperrt</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleUserActivation('${user.username}')" class="px-4 py-2 bg-green-950/30 hover:bg-green-950/60 text-green-400 border border-green-900/30 rounded-xl text-xs font-bold apple-transition flex items-center gap-1.5">
+                            <i data-lucide="user-check" class="w-4 h-4"></i> ACCOUNT REAKTIVIEREN
+                        </button>
+                    `;
+                    deactivatedList.appendChild(deactivatedRow);
+                } else {
+                    usersList.appendChild(userRow);
+                }
+
+                if (isCreator && !isDeactivated) {
+                    hasCreators = true;
+                    const creatorRow = document.createElement('div');
+                    creatorRow.className = "flex items-center justify-between p-4 bg-blue-950/15 border border-blue-900/20 rounded-2xl";
+                    creatorRow.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                <i data-lucide="star" class="text-blue-400 w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-white">${user.username}</p>
+                                <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${user.username.toUpperCase()}" (230 Münzen)</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleCreatorStatus('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Creator Status entfernen">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    creatorsList.appendChild(creatorRow);
+                }
+            });
+
+            if (hasDeactivated) deactivatedContainer.classList.remove('hidden');
+            else deactivatedContainer.classList.add('hidden');
+
+            if (hasCreators) creatorContainer.classList.remove('hidden');
+            else creatorContainer.classList.add('hidden');
+
+            lucide.createIcons();
+        }
+
+        function modifyUserCoins(username, add) {
+            const input = document.getElementById(`coins-add-${username}`);
+            const amount = parseInt(input.value);
+            if (isNaN(amount) || amount <= 0) return;
+
+            const user = users.find(u => u.username === username);
+            if (user) {
+                if (add) {
+                    user.coins += amount;
+                    showSuccessToast(`${amount} Münzen an ${username} vergeben.`);
+                } else {
+                    user.coins = Math.max(0, user.coins - amount);
+                    showSuccessToast(`${amount} Münzen von ${username} abgezogen.`);
+                }
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                if (currentUser && currentUser.username === username) {
+                    currentUser.coins = user.coins;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateCoinsDisplay();
+                }
+
+                input.value = '';
+                renderUsers();
+            }
+        }
+
+        function toggleUserActivation(username) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.deactivated = !user.deactivated;
+                localStorage.setItem('users', JSON.stringify(users));
+                showSuccessToast(user.deactivated ? `Account ${username} deaktiviert.` : `Account ${username} reaktiviert.`);
+                renderUsers();
+            }
+        }
+
+        function toggleCreatorStatus(username) {
+            const user = users.find(u => u.username === username);
+            if (!user) return;
+
+            const index = creators.indexOf(username);
+            if (index > -1) {
+                creators.splice(index, 1);
+                showSuccessToast(`${username} ist kein Creator mehr.`);
+            } else {
+                creators.push(username);
+                showSuccessToast(`${username} als Creator eingetragen!`);
+            }
+            localStorage.setItem('creators', JSON.stringify(creators));
+            renderUsers();
+        }
+
+        // --- CREATOR CODES ---
+        function openCreatorModal() {
+            const modal = document.getElementById('creator-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 50);
+        }
+
+        function closeCreatorModal() {
+            const modal = document.getElementById('creator-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('creator-code-input').value = '';
+            }, 400);
+        }
+
+        function submitCreatorCode() {
+            const codeInput = document.getElementById('creator-code-input').value.trim();
+            if (!codeInput) return;
+
+            const match = creators.find(c => c.toLowerCase() === codeInput.toLowerCase());
+
+            if (match) {
+                if (currentUser.username !== OWNER_NAME) {
+                    currentUser.coins += 230;
+                    const dbUser = users.find(u => u.username === currentUser.username);
+                    if (dbUser) dbUser.coins = currentUser.coins;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+                updateCoinsDisplay();
+                closeCreatorModal();
+                showSuccessToast("230 Münzen erfolgreich erhalten!");
+            } else {
+                closeCreatorModal();
+                showErrorToast("Code ist ungültig oder existiert nicht.");
+            }
+        }
+
+        // --- TOAST SYSTEM ---
+        function showToast(text, iconName) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            
+            const icon = document.getElementById('toast-icon');
+            icon.setAttribute('data-lucide', iconName);
+            if (iconName === 'hourglass') {
+                icon.classList.add('animate-hourglass');
+            } else {
+                icon.classList.remove('animate-hourglass');
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('translate-y-[-150%]', 'opacity-0');
+        }
+
+        function showErrorToast(text) {
+            const toast = document.getElementById('error-toast');
+            document.getElementById('error-toast-text').innerText = text;
+            toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-150%]', 'opacity-0');
+            }, 3500);
+        }
+
+        function showSuccessToast(text) {
+            const toast = document.getElementById('success-toast');
+            document.getElementById('success-toast-text').innerText = text;
+            toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-150%]', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
