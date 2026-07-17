@@ -147,11 +147,15 @@
                 </div>
 
                 <!-- Navigation -->
-                <nav class="flex items-center gap-2 bg-neutral-900/50 p-1 rounded-xl border border-neutral-800/60">
+                <nav class="flex items-center gap-2 bg-neutral-900/50 p-1 rounded-xl border border-neutral-800/60 flex-wrap justify-center">
                     <button onclick="showView('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-white bg-neutral-800 flex items-center gap-2" id="btn-home">
                         <i data-lucide="home" class="w-4 h-4"></i> Startseite
                     </button>
                     
+                    <button onclick="showView('about')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-about">
+                        <i data-lucide="info" class="w-4 h-4"></i> Über uns
+                    </button>
+
                     <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Beat hochladen
                     </button>
@@ -222,6 +226,24 @@
                     <p class="text-neutral-300 font-medium text-lg max-w-md px-6">
                         Bisher hat Leo keine Beats hochgeladen die du nutzen darfst.
                     </p>
+                </div>
+            </section>
+
+            <!-- ================= VIEW: ÜBER UNS ================= -->
+            <section id="view-about" class="view-section hidden max-w-3xl mx-auto">
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-2xl font-bold tracking-wider text-blue-500 uppercase text-center mb-8">ÜBER UNS</h2>
+                    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                        <img id="about-owner-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=LeoDisstrack-YT2" class="w-28 h-28 rounded-full border-2 border-neutral-800 object-cover bg-neutral-900 shadow-xl">
+                        <div class="space-y-4 flex-1 text-center md:text-left">
+                            <h3 id="about-owner-name" class="text-xl font-bold text-white tracking-wide">LeoDisstrack-YT2</h3>
+                            <p class="text-neutral-300 leading-relaxed text-sm md:text-base whitespace-pre-line">
+                                Hallo liebe Leute! Danke erstmal fürs besuchen diesem Beats Shop. Hier findet ihr Beats die Beat Coins kosten oder Kostenlos sind. Keine sorge, die Beat Coins kosten kein echtes geld xd. Naja aufjedenfall sind das Lizenzen ob ein Wasserzeichen drinne ist oder keins und ob ihr den Beat auf Spotify und co. hochladen dürft oder nicht. Auf Soundcloud darfst du sie immer hochladen.
+
+                                Ich bin Leo aka. LeoDisstrack-YT. Ich betreibe einen Musik Kanal wo Disstracks hochgeladen werden. Ich erstelle auch eigene Beats wie bei dem VBC_Official Disstrack. Ich gebe euch auch paar Beats für euren Musik-Projekt.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -463,11 +485,9 @@
 
     <!-- ================= JAVASCRIPT LOGIK ================= -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, child, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDLMy8vmFCkCckhU0A8VaLbWkZxyLb625Y",
             authDomain: "leodisstrack-beats.firebaseapp.com",
@@ -479,22 +499,19 @@
             measurementId: "G-MQYZEYHPYJ"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Globale App-Zustände
         let beats = [];
         let users = [];
         let creators = {};
         let currentUser = null;
         let selectedBeatForModal = null;
+        let isTrueOwner = false; // Sichere Erfassung der Adminrechte
 
         const OWNER_NAME = "LeoDisstrack-YT2";
 
-        // --- FIREBASE SYNCHRONISATION ---
         function listenToFirebaseData() {
-            // Beats live abfangen
             onValue(ref(db, 'beats'), (snapshot) => {
                 const data = snapshot.val();
                 beats = data ? Object.values(data) : [];
@@ -504,11 +521,19 @@
                 }
             });
 
-            // User live abfangen
             onValue(ref(db, 'users'), (snapshot) => {
                 const data = snapshot.val();
                 users = data ? Object.values(data) : [];
                 
+                // Live-Update des "Über uns" Frames durch Auslesen der Admin-Daten
+                const adminAccount = users.find(u => u.isTrueAdmin === true || u.username === OWNER_NAME);
+                if (adminAccount) {
+                    const aboutName = document.getElementById('about-owner-name');
+                    const aboutAvatar = document.getElementById('about-owner-avatar');
+                    if (aboutName) aboutName.innerText = adminAccount.username;
+                    if (aboutAvatar) aboutAvatar.src = adminAccount.avatar;
+                }
+
                 if (currentUser) {
                     const freshUser = users.find(u => u.username === currentUser.username);
                     if (freshUser) {
@@ -526,7 +551,6 @@
                 renderUsers();
             });
 
-            // Creator Codes live als Key-Value Map abfangen (username: customCode)
             onValue(ref(db, 'creators'), (snapshot) => {
                 const data = snapshot.val();
                 creators = data ? data : {};
@@ -534,9 +558,12 @@
             });
         }
 
-        // Automatischen Login prüfen & Synchronisation starten
         window.addEventListener('DOMContentLoaded', () => {
             listenToFirebaseData();
+
+            if (localStorage.getItem('is_true_owner') === 'true') {
+                isTrueOwner = true;
+            }
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
@@ -547,9 +574,10 @@
                         if (dbUser.deactivated) {
                             localStorage.removeItem('currentUser');
                         } else {
+                            if(dbUser.isTrueAdmin) isTrueOwner = true;
                             loginUser(dbUser);
                         }
-                    } else if (parsed.username === OWNER_NAME) {
+                    } else if (parsed.username === OWNER_NAME || parsed.isTrueAdmin) {
                         loginUser(parsed);
                     } else {
                         localStorage.removeItem('currentUser');
@@ -571,7 +599,6 @@
             });
         });
 
-        // --- GLOBAL INTERFACES FOR HTML ATTRIBUTES ---
         window.toggleCostField = function(show) {
             const costFrame = document.getElementById('cost-frame');
             if (show) {
@@ -625,6 +652,7 @@
                     showAuthError("Du bist nicht der owner dieser website.");
                     return;
                 } else {
+                    isTrueOwner = true;
                     localStorage.setItem('is_true_owner', 'true');
                     localStorage.setItem('owner_registered', 'true');
                 }
@@ -652,7 +680,8 @@
                 avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
                 deactivated: false,
                 lastCreatorCodeChange: null,
-                customCreatorCode: ""
+                customCreatorCode: "",
+                isTrueAdmin: usernameInput === OWNER_NAME ? true : false
             };
 
             set(ref(db, 'users/' + usernameInput), newUser).then(() => {
@@ -688,6 +717,11 @@
                 return;
             }
 
+            if(foundUser.isTrueAdmin) {
+                isTrueOwner = true;
+                localStorage.setItem('is_true_owner', 'true');
+            }
+
             loginUser(foundUser);
         };
 
@@ -708,7 +742,7 @@
             document.getElementById('profile-name-display').innerText = user.username;
             document.getElementById('header-avatar').src = user.avatar;
 
-            if (user.username === OWNER_NAME) {
+            if (isTrueOwner || user.isTrueAdmin) {
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             } else {
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
@@ -722,7 +756,9 @@
 
         window.logout = function() {
             currentUser = null;
+            isTrueOwner = false;
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('is_true_owner');
             document.getElementById('app-content').classList.remove('flex');
             document.getElementById('app-content').classList.add('hidden');
             document.getElementById('auth-gate').classList.remove('hidden');
@@ -736,7 +772,7 @@
         function updateCoinsDisplay() {
             const globalCoinsSpan = document.getElementById('global-coins');
             if (currentUser) {
-                globalCoinsSpan.innerText = currentUser.username === OWNER_NAME ? "∞" : currentUser.coins;
+                globalCoinsSpan.innerText = (isTrueOwner || currentUser.isTrueAdmin) ? "∞" : currentUser.coins;
             }
         }
 
@@ -751,6 +787,10 @@
                 document.getElementById('view-home').classList.remove('hidden');
                 document.getElementById('btn-home').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-home').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+            } else if (viewName === 'about') {
+                document.getElementById('view-about').classList.remove('hidden');
+                document.getElementById('btn-about').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-about').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
             } else if (viewName === 'upload') {
                 document.getElementById('view-upload').classList.remove('hidden');
                 document.getElementById('btn-upload').classList.add('text-white', 'bg-neutral-800');
@@ -853,7 +893,6 @@
                 currentUser.avatar = tempAvatarData;
             }
 
-            // Wenn sich der Name ändert, müssen wir die Creator-Zuweisung mitspeichern
             if (oldName !== newName && isCreator) {
                 const existingCode = currentUser.customCreatorCode || creators[oldName] || oldName;
                 await remove(ref(db, `creators/${oldName}`));
@@ -979,7 +1018,7 @@
                 grid.innerHTML = '';
                 filtered.forEach(beat => {
                     const hasPurchasedList = beat.purchasedBy || [];
-                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
                     
                     const card = document.createElement('div');
                     card.className = "bg-neutral-950 border border-neutral-900 rounded-3xl p-5 shadow-xl hover:border-neutral-800/80 apple-transition flex flex-col justify-between";
@@ -1004,7 +1043,7 @@
                                 ${beat.cost === 0 ? '<span class="text-blue-400 font-bold uppercase tracking-wider">Kostenlos</span>' : `🪙 ${beat.cost}`}
                             </span>
                             <button onclick="openBeatModal('${beat.id}')" class="px-5 py-2.5 text-xs font-bold rounded-xl ${isPurchased ? 'bg-neutral-900 text-neutral-300 hover:text-white border border-neutral-800' : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/10'} apple-transition">
-                                ${isPurchased ? 'ANHÖREN / LADEN' : 'ERWERBEN'}
+                                ${isPurchased ? 'ANHÖREN / LADEN' : 'VORSCHAU / KAUFEN'}
                             </button>
                         </div>
                     `;
@@ -1034,12 +1073,17 @@
             buttonsContainer.innerHTML = '';
 
             const hasPurchasedList = beat.purchasedBy || [];
-            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
 
             if (beat.cost === 0) {
                 badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="gift" class="w-3.5 h-3.5"></i> KOSTENLOSE LIZENZ</span>`;
             } else {
-                badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20"><i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> ${beat.cost} BEAT COINS</span>`;
+                badgeContainer.innerHTML = `
+                    <div class="flex flex-col gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20 justify-center"><i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> ${beat.cost} BEAT COINS</span>
+                        ${!isPurchased ? '<span class="text-[11px] text-amber-400 text-center font-medium">⚠️ Vorschau-Modus aktiv (stoppt nach 50 Sek.)</span>' : ''}
+                    </div>
+                `;
             }
 
             if (isPurchased) {
@@ -1052,14 +1096,32 @@
                     </a>
                 `;
             } else {
+                // Audio Vorschau mit 50 Sekunden Limitierung
                 buttonsContainer.innerHTML = `
+                    <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+                        <audio id="preview-audio-player" controls class="w-full" src="${beat.audioData}"></audio>
+                    </div>
                     <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 apple-transition text-sm shadow-lg shadow-green-600/10">
                         <i data-lucide="shopping-cart" class="w-4 h-4"></i> Für ${beat.cost} Coins freischalten
                     </button>
                 `;
+
+                // Timeout Listener für 50-Sekunden-Stopp hinzufügen
+                setTimeout(() => {
+                    const pPlayer = document.getElementById('preview-audio-player');
+                    if (pPlayer) {
+                        pPlayer.addEventListener('timeupdate', () => {
+                            if (pPlayer.currentTime >= 50) {
+                                pPlayer.pause();
+                                pPlayer.currentTime = 0;
+                                showErrorToast("Die 50 Sekunden Vorschau ist vorbei. Kaufe den Beat für die volle Länge!");
+                            }
+                        });
+                    }
+                }, 100);
             }
 
-            if (currentUser.username === OWNER_NAME) {
+            if (isTrueOwner || currentUser.isTrueAdmin) {
                 buttonsContainer.innerHTML += `
                     <button onclick="deleteBeat('${beat.id}')" class="w-full bg-red-950/40 hover:bg-red-950/60 border border-red-900/30 text-red-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 apple-transition text-xs">
                         <i data-lucide="trash-2" class="w-4 h-4"></i> Beat unwiderruflich löschen
@@ -1078,6 +1140,8 @@
 
         window.closeBeatModal = function() {
             const modal = document.getElementById('beat-modal');
+            const pPlayer = document.getElementById('preview-audio-player');
+            if(pPlayer) pPlayer.pause();
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
@@ -1089,13 +1153,13 @@
             const beat = beats.find(b => b.id === beatId);
             if (!beat) return;
 
-            if (currentUser.coins < beat.cost && currentUser.username !== OWNER_NAME) {
+            if (currentUser.coins < beat.cost && !isTrueOwner && !currentUser.isTrueAdmin) {
                 closeBeatModal();
                 showErrorToast("Du hast leider nicht genug Beat coins um dir diesen Beat zu kaufen!:(");
                 return;
             }
 
-            if (currentUser.username !== OWNER_NAME) {
+            if (!isTrueOwner && !currentUser.isTrueAdmin) {
                 currentUser.coins -= beat.cost;
                 await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -1139,7 +1203,7 @@
             let hasCreators = false;
 
             users.forEach(user => {
-                if (user.username === OWNER_NAME) return;
+                if (user.isTrueAdmin || user.username === OWNER_NAME) return;
 
                 const isDeactivated = user.deactivated;
                 const isCreator = creators[user.username] !== undefined;
@@ -1300,12 +1364,11 @@
             const codeInput = document.getElementById('creator-code-input').value.trim().toLowerCase();
             if (!codeInput) return;
 
-            // Holt alle gültigen Codes aus der Echtzeitdatenbank
             const validCodes = Object.values(creators).map(c => c.toLowerCase());
             const isValid = validCodes.includes(codeInput);
 
             if (isValid) {
-                if (currentUser.username !== OWNER_NAME) {
+                if (!isTrueOwner && !currentUser.isTrueAdmin) {
                     currentUser.coins += 230;
                     await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -1322,22 +1385,16 @@
         function showToast(text, iconName) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').innerText = text;
-            
             const icon = document.getElementById('toast-icon');
             icon.setAttribute('data-lucide', iconName);
-            if (iconName === 'hourglass') {
-                icon.classList.add('animate-hourglass');
-            } else {
-                icon.classList.remove('animate-hourglass');
-            }
+            if (iconName === 'hourglass') icon.classList.add('animate-hourglass');
+            else icon.classList.remove('animate-hourglass');
             lucide.createIcons();
-
             toast.classList.remove('translate-y-[-150%]', 'opacity-0');
         }
 
         function hideToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.add('translate-y-[-150%]', 'opacity-0');
+            document.getElementById('toast').classList.add('translate-y-[-150%]', 'opacity-0');
         }
 
         function showErrorToast(text) {
