@@ -486,7 +486,7 @@
         // Globale App-Zustände
         let beats = [];
         let users = [];
-        let creators = ["LeoDisstrack-YT"];
+        let creators = {};
         let currentUser = null;
         let selectedBeatForModal = null;
 
@@ -500,7 +500,6 @@
                 beats = data ? Object.values(data) : [];
                 renderBeats();
                 if (selectedBeatForModal) {
-                    // Update das geöffnete Modal falls Daten sich ändern
                     openBeatModal(selectedBeatForModal.id);
                 }
             });
@@ -510,7 +509,6 @@
                 const data = snapshot.val();
                 users = data ? Object.values(data) : [];
                 
-                // Aktuellen User-Status updaten falls eingeloggt
                 if (currentUser) {
                     const freshUser = users.find(u => u.username === currentUser.username);
                     if (freshUser) {
@@ -528,10 +526,10 @@
                 renderUsers();
             });
 
-            // Creator Codes live abfangen
+            // Creator Codes live als Key-Value Map abfangen (username: customCode)
             onValue(ref(db, 'creators'), (snapshot) => {
                 const data = snapshot.val();
-                creators = data ? Object.values(data) : ["LeoDisstrack-YT"];
+                creators = data ? data : {};
                 renderUsers();
             });
         }
@@ -653,7 +651,8 @@
                 coins: usernameInput === OWNER_NAME ? 99999999 : 0, 
                 avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
                 deactivated: false,
-                lastCreatorCodeChange: null
+                lastCreatorCodeChange: null,
+                customCreatorCode: ""
             };
 
             set(ref(db, 'users/' + usernameInput), newUser).then(() => {
@@ -776,14 +775,15 @@
             document.getElementById('settings-avatar-preview').src = currentUser.avatar;
             document.getElementById('settings-avatar-file').value = "";
 
-            const isCreator = creators.includes(currentUser.username);
+            const isCreator = creators[currentUser.username] !== undefined;
             const creatorSection = document.getElementById('settings-creator-section');
             const codeInput = document.getElementById('settings-creator-code');
             const cooldownInfo = document.getElementById('creator-cooldown-info');
 
             if (isCreator) {
                 creatorSection.classList.remove('hidden');
-                codeInput.value = currentUser.username;
+                // Zeigt den bereits genommenen geänderten Code an, falls vorhanden, sonst den Usernamen
+                codeInput.value = currentUser.customCreatorCode || creators[currentUser.username] || currentUser.username;
                 
                 if (currentUser.lastCreatorCodeChange) {
                     const diffTime = Math.abs(new Date() - new Date(currentUser.lastCreatorCodeChange));
@@ -822,7 +822,7 @@
         window.handleSaveSettings = async function(event) {
             event.preventDefault();
             const newName = document.getElementById('settings-username').value.trim();
-            const isCreator = creators.includes(currentUser.username);
+            const isCreator = creators[currentUser.username] !== undefined;
             const codeInput = document.getElementById('settings-creator-code');
             const newCode = codeInput.value.trim();
 
@@ -844,12 +844,8 @@
                     showErrorToast("Der Creator Code darf nur Buchstaben, Zahlen, Punkte (.) und Unterstriche (_) enthalten.");
                     return;
                 }
-
-                const creatorIndex = creators.indexOf(oldName);
-                if (creatorIndex > -1) {
-                    await remove(ref(db, `creators/${creatorIndex}`));
-                }
-                await set(ref(db, `creators/${newCode}`), newCode);
+                currentUser.customCreatorCode = newCode;
+                await set(ref(db, `creators/${oldName}`), newCode);
                 currentUser.lastCreatorCodeChange = new Date().toISOString();
             }
 
@@ -858,11 +854,16 @@
                 currentUser.avatar = tempAvatarData;
             }
 
-            // Alten User-Pfad löschen und neu setzen
+            // Wenn sich der Name ändert, müssen wir die Creator-Zuweisung mitspeichern
+            if (oldName !== newName && isCreator) {
+                const existingCode = currentUser.customCreatorCode || creators[oldName] || oldName;
+                await remove(ref(db, `creators/${oldName}`));
+                await set(ref(db, `creators/${newName}`), existingCode);
+            }
+
             await remove(ref(db, `users/${oldName}`));
             await set(ref(db, `users/${newName}`), currentUser);
 
-            // Gekaufte Beats updaten
             beats.forEach(async (beat) => {
                 if(beat.purchasedBy) {
                     const buyIndex = beat.purchasedBy.indexOf(oldName);
@@ -937,7 +938,7 @@
                         audioName: audioFile.name,
                         coverData: eCover.target.result,
                         cost: finalCost,
-                        purchasedBy: ["placeholder_init"] // Hilfs-Array-Init für Firebase
+                        purchasedBy: ["placeholder_init"]
                     };
 
                     set(ref(db, 'beats/' + beatId), newBeat).then(() => {
@@ -1142,7 +1143,9 @@
                 if (user.username === OWNER_NAME) return;
 
                 const isDeactivated = user.deactivated;
-                const isCreator = creators.includes(user.username);
+                const isCreator = creators[user.username] !== undefined;
+                // Holt den aktuellen geänderten Creator Code, falls vorhanden, andernfalls den Usernamen
+                const activeCreatorCode = isCreator ? (creators[user.username] || user.username) : user.username;
 
                 const userRow = document.createElement('div');
                 userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
@@ -1208,7 +1211,7 @@
                             </div>
                             <div>
                                 <p class="font-bold text-white">${user.username}</p>
-                                <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${user.username.toUpperCase()}" (230 Münzen)</p>
+                                <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${activeCreatorCode.toUpperCase()}" (230 Münzen)</p>
                             </div>
                         </div>
                         <button onclick="toggleCreatorStatus('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Creator Status entfernen">
@@ -1242,9 +1245,7 @@
                     user.coins = Math.max(0, user.coins - amount);
                     showSuccessToast(`${amount} Münzen von ${username} abgezogen.`);
                 }
-                
                 await set(ref(db, `users/${username}/coins`), user.coins);
-
                 input.value = '';
             }
         };
@@ -1260,14 +1261,20 @@
 
         window.toggleCreatorStatus = async function(username) {
             const user = users.find(u => u.username === username);
-            if (!user) return;
+            const isCurrentlyCreator = creators[username] !== undefined;
 
-            const index = creators.indexOf(username);
-            if (index > -1) {
+            if (isCurrentlyCreator) {
+                // Löscht den Creator-Eintrag komplett aus der Tabelle
                 await remove(ref(db, `creators/${username}`));
+                if (user) {
+                    user.customCreatorCode = "";
+                    await set(ref(db, `users/${username}/customCreatorCode`), "");
+                }
                 showSuccessToast(`${username} ist kein Creator mehr.`);
             } else {
-                await set(ref(db, `creators/${username}`), username);
+                // Initialisiert den Creator-Code standardmäßig mit dem Usernamen
+                const initialCode = user?.customCreatorCode || username;
+                await set(ref(db, `creators/${username}`), initialCode);
                 showSuccessToast(`${username} als Creator eingetragen!`);
             }
         };
@@ -1290,12 +1297,14 @@
         };
 
         window.submitCreatorCode = async function() {
-            const codeInput = document.getElementById('creator-code-input').value.trim();
+            const codeInput = document.getElementById('creator-code-input').value.trim().toLowerCase();
             if (!codeInput) return;
 
-            const match = creators.find(c => c.toLowerCase() === codeInput.toLowerCase());
+            // Sucht in den Werten aller aktiven Creator-Codes nach einer Übereinstimmung
+            const validCodes = Object.values(creators).map(c => c.toLowerCase());
+            const isValid = validCodes.includes(codeInput);
 
-            if (match) {
+            if (isValid) {
                 if (currentUser.username !== OWNER_NAME) {
                     currentUser.coins += 230;
                     await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
