@@ -782,8 +782,7 @@
 
             if (isCreator) {
                 creatorSection.classList.remove('hidden');
-                // Zeigt den bereits genommenen geänderten Code an, falls vorhanden, sonst den Usernamen
-                codeInput.value = currentUser.customCreatorCode || creators[currentUser.username] || currentUser.username;
+                codeInput.value = creators[currentUser.username] || currentUser.username;
                 
                 if (currentUser.lastCreatorCodeChange) {
                     const diffTime = Math.abs(new Date() - new Date(currentUser.lastCreatorCodeChange));
@@ -1144,7 +1143,6 @@
 
                 const isDeactivated = user.deactivated;
                 const isCreator = creators[user.username] !== undefined;
-                // Holt den aktuellen geänderten Creator Code, falls vorhanden, andernfalls den Usernamen
                 const activeCreatorCode = isCreator ? (creators[user.username] || user.username) : user.username;
 
                 const userRow = document.createElement('div');
@@ -1264,7 +1262,6 @@
             const isCurrentlyCreator = creators[username] !== undefined;
 
             if (isCurrentlyCreator) {
-                // Löscht den Creator-Eintrag komplett aus der Tabelle
                 await remove(ref(db, `creators/${username}`));
                 if (user) {
                     user.customCreatorCode = "";
@@ -1272,9 +1269,12 @@
                 }
                 showSuccessToast(`${username} ist kein Creator mehr.`);
             } else {
-                // Initialisiert den Creator-Code standardmäßig mit dem Usernamen
-                const initialCode = user?.customCreatorCode || username;
+                const initialCode = (user && user.customCreatorCode) ? user.customCreatorCode : username;
                 await set(ref(db, `creators/${username}`), initialCode);
+                if (user) {
+                    user.customCreatorCode = initialCode;
+                    await set(ref(db, `users/${username}/customCreatorCode`), initialCode);
+                }
                 showSuccessToast(`${username} als Creator eingetragen!`);
             }
         };
@@ -1300,7 +1300,7 @@
             const codeInput = document.getElementById('creator-code-input').value.trim().toLowerCase();
             if (!codeInput) return;
 
-            // Sucht in den Werten aller aktiven Creator-Codes nach einer Übereinstimmung
+            // Holt alle gültigen Codes aus der Echtzeitdatenbank
             const validCodes = Object.values(creators).map(c => c.toLowerCase());
             const isValid = validCodes.includes(codeInput);
 
