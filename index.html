@@ -411,7 +411,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <!-- Links: Cover -->
-                <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative">
+                <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative group cursor-pointer" onclick="openBeatModal(selectedBeatForModal ? selectedBeatForModal.id : '')">
                     <img id="modal-cover" src="" class="w-full h-full object-cover">
                 </div>
 
@@ -462,97 +462,105 @@
     </div>
 
     <!-- ================= JAVASCRIPT LOGIK ================= -->
-    <script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLMy8vmFCkCckhU0A8VaLbWkZxyLb625Y",
+            authDomain: "leodisstrack-beats.firebaseapp.com",
+            databaseURL: "https://leodisstrack-beats-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "leodisstrack-beats",
+            storageBucket: "leodisstrack-beats.firebasestorage.app",
+            messagingSenderId: "737493878618",
+            appId: "1:737493878618:web:2ed5966846393061ea5563",
+            measurementId: "G-MQYZEYHPYJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Globale App-Zustände
         let beats = [];
-        let users = JSON.parse(localStorage.getItem('users')) || [];
-        let creators = JSON.parse(localStorage.getItem('creators')) || ["LeoDisstrack-YT"]; // Standard Creator Code
+        let users = [];
+        let creators = ["LeoDisstrack-YT"];
         let currentUser = null;
         let selectedBeatForModal = null;
 
         const OWNER_NAME = "LeoDisstrack-YT2";
 
-        // --- INDEXEDDB SETUP FÜR GROßE AUDIODATEIEN ---
-        const dbName = "BeatProductionDB";
-        const storeName = "beats";
-        let db;
+        // --- FIREBASE SYNCHRONISATION ---
+        function listenToFirebaseData() {
+            // Beats live abfangen
+            onValue(ref(db, 'beats'), (snapshot) => {
+                const data = snapshot.val();
+                beats = data ? Object.values(data) : [];
+                renderBeats();
+                if (selectedBeatForModal) {
+                    // Update das geöffnete Modal falls Daten sich ändern
+                    openBeatModal(selectedBeatForModal.id);
+                }
+            });
 
-        function initIndexedDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(dbName, 1);
-                request.onupgradeneeded = function(e) {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains(storeName)) {
-                        database.createObjectStore(storeName, { keyPath: "id" });
+            // User live abfangen
+            onValue(ref(db, 'users'), (snapshot) => {
+                const data = snapshot.val();
+                users = data ? Object.values(data) : [];
+                
+                // Aktuellen User-Status updaten falls eingeloggt
+                if (currentUser) {
+                    const freshUser = users.find(u => u.username === currentUser.username);
+                    if (freshUser) {
+                        if (freshUser.deactivated) {
+                            logout();
+                        } else {
+                            currentUser = freshUser;
+                            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                            document.getElementById('profile-name-display').innerText = currentUser.username;
+                            document.getElementById('header-avatar').src = currentUser.avatar;
+                            updateCoinsDisplay();
+                        }
                     }
-                };
-                request.onsuccess = function(e) {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                request.onerror = function(e) {
-                    reject(e);
-                };
+                }
+                renderUsers();
+            });
+
+            // Creator Codes live abfangen
+            onValue(ref(db, 'creators'), (snapshot) => {
+                const data = snapshot.val();
+                creators = data ? Object.values(data) : ["LeoDisstrack-YT"];
+                renderUsers();
             });
         }
 
-        function saveBeatToDB(beat) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([storeName], "readwrite");
-                const store = transaction.objectStore(storeName);
-                const request = store.put(beat);
-                request.onsuccess = () => resolve();
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        function loadBeatsFromDB() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([storeName], "readonly");
-                const store = transaction.objectStore(storeName);
-                const request = store.getAll();
-                request.onsuccess = (e) => resolve(e.target.result);
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        function deleteBeatFromDB(id) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([storeName], "readwrite");
-                const store = transaction.objectStore(storeName);
-                const request = store.delete(id);
-                request.onsuccess = () => resolve();
-                request.onerror = (e) => reject(e);
-            });
-        }
-
-        // Prüft automatischen Login und initialisiert die DB
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await initIndexedDB();
-                beats = await loadBeatsFromDB();
-            } catch (err) {
-                console.error("IndexedDB konnte nicht geladen werden:", err);
-            }
+        // Automatischen Login prüfen & Synchronisation starten
+        window.addEventListener('DOMContentLoaded', () => {
+            listenToFirebaseData();
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 const parsed = JSON.parse(savedUser);
-                const dbUser = users.find(u => u.username === parsed.username);
-                if (dbUser) {
-                    if (dbUser.deactivated) {
-                        localStorage.removeItem('currentUser');
+                get(child(ref(db), `users/${parsed.username}`)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const dbUser = snapshot.val();
+                        if (dbUser.deactivated) {
+                            localStorage.removeItem('currentUser');
+                        } else {
+                            loginUser(dbUser);
+                        }
+                    } else if (parsed.username === OWNER_NAME) {
+                        loginUser(parsed);
                     } else {
-                        loginUser(dbUser);
+                        localStorage.removeItem('currentUser');
                     }
-                } else if (parsed.username === OWNER_NAME) {
-                    loginUser(parsed);
-                } else {
-                    localStorage.removeItem('currentUser');
-                }
+                }).catch((error) => console.error(error));
             }
+
             lucide.createIcons();
             
-            // Klick-Event um Dropdown zu schließen wenn man außerhalb klickt
             document.addEventListener('click', function(event) {
                 const dropdown = document.getElementById('profile-dropdown');
                 const avatar = document.getElementById('header-avatar');
@@ -565,8 +573,8 @@
             });
         });
 
-        // Toggle Cost Frame beim Hochladen
-        function toggleCostField(show) {
+        // --- GLOBAL INTERFACES FOR HTML ATTRIBUTES ---
+        window.toggleCostField = function(show) {
             const costFrame = document.getElementById('cost-frame');
             if (show) {
                 costFrame.classList.remove('hidden');
@@ -575,10 +583,9 @@
                 costFrame.classList.add('hidden');
                 document.getElementById('beat-cost').removeAttribute('required');
             }
-        }
+        };
 
-        // --- PROFILE DROPDOWN ---
-        function toggleProfileDropdown(forceState) {
+        window.toggleProfileDropdown = function(forceState) {
             const dropdown = document.getElementById('profile-dropdown');
             const show = forceState !== undefined ? forceState : dropdown.classList.contains('hidden');
 
@@ -593,10 +600,9 @@
                     dropdown.classList.add('hidden');
                 }, 400);
             }
-        }
+        };
 
-        // --- AUTH LOGIK ---
-        function toggleAuthMode(showLogin) {
+        window.toggleAuthMode = function(showLogin) {
             const registerForm = document.getElementById('auth-register');
             const loginForm = document.getElementById('auth-login');
             const errorText = document.getElementById('auth-error');
@@ -609,9 +615,9 @@
                 registerForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
             }
-        }
+        };
 
-        function handleRegister(event) {
+        window.handleRegister = function(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('reg-username').value.trim();
             const passwordInput = document.getElementById('reg-password').value;
@@ -644,18 +650,18 @@
             const newUser = {
                 username: usernameInput,
                 password: passwordInput,
-                coins: usernameInput === OWNER_NAME ? Infinity : 0,
+                coins: usernameInput === OWNER_NAME ? 99999999 : 0, 
                 avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
                 deactivated: false,
                 lastCreatorCodeChange: null
             };
 
-            users.push(newUser);
-            localStorage.setItem('users', JSON.stringify(users));
-            loginUser(newUser);
-        }
+            set(ref(db, 'users/' + usernameInput), newUser).then(() => {
+                loginUser(newUser);
+            });
+        };
 
-        function handleLogin(event) {
+        window.handleLogin = function(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('login-username').value.trim();
             const passwordInput = document.getElementById('login-password').value;
@@ -684,7 +690,7 @@
             }
 
             loginUser(foundUser);
-        }
+        };
 
         function showAuthError(message) {
             const errorText = document.getElementById('auth-error');
@@ -703,7 +709,6 @@
             document.getElementById('profile-name-display').innerText = user.username;
             document.getElementById('header-avatar').src = user.avatar;
 
-            // Admin Buttons anzeigen, falls Admin
             if (user.username === OWNER_NAME) {
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             } else {
@@ -716,7 +721,7 @@
             showView('home');
         }
 
-        function logout() {
+        window.logout = function() {
             currentUser = null;
             localStorage.removeItem('currentUser');
             document.getElementById('app-content').classList.remove('flex');
@@ -727,7 +732,7 @@
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             toggleAuthMode(true);
-        }
+        };
 
         function updateCoinsDisplay() {
             const globalCoinsSpan = document.getElementById('global-coins');
@@ -736,8 +741,7 @@
             }
         }
 
-        // --- NAVIGATION LOGIK ---
-        function showView(viewName) {
+        window.showView = function(viewName) {
             document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('text-white', 'bg-neutral-800');
@@ -762,9 +766,8 @@
                 prepareSettingsView();
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        };
 
-        // --- EINSTELLUNGEN LOGIK ---
         let tempAvatarData = null;
 
         function prepareSettingsView() {
@@ -780,9 +783,8 @@
 
             if (isCreator) {
                 creatorSection.classList.remove('hidden');
-                codeInput.value = currentUser.username; // Standardmäßig sein Name
+                codeInput.value = currentUser.username;
                 
-                // Prüfe Cooldown
                 if (currentUser.lastCreatorCodeChange) {
                     const diffTime = Math.abs(new Date() - new Date(currentUser.lastCreatorCodeChange));
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -805,7 +807,7 @@
             }
         }
 
-        function previewSettingsAvatar(input) {
+        window.previewSettingsAvatar = function(input) {
             const preview = document.getElementById('settings-avatar-preview');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -815,9 +817,9 @@
                 }
                 reader.readAsDataURL(input.files[0]);
             }
-        }
+        };
 
-        async function handleSaveSettings(event) {
+        window.handleSaveSettings = async function(event) {
             event.preventDefault();
             const newName = document.getElementById('settings-username').value.trim();
             const isCreator = creators.includes(currentUser.username);
@@ -834,6 +836,8 @@
                 }
             }
 
+            const oldName = currentUser.username;
+
             if (isCreator && !codeInput.hasAttribute('disabled')) {
                 const regex = /^[A-Za-z0-9._]+$/;
                 if (!regex.test(newCode)) {
@@ -841,62 +845,52 @@
                     return;
                 }
 
-                const creatorIndex = creators.indexOf(currentUser.username);
+                const creatorIndex = creators.indexOf(oldName);
                 if (creatorIndex > -1) {
-                    creators[creatorIndex] = newCode;
-                } else {
-                    creators.push(newCode);
+                    await remove(ref(db, `creators/${creatorIndex}`));
                 }
-                currentUser.lastCreatorCodeChange = new Date();
-                localStorage.setItem('creators', JSON.stringify(creators));
+                await set(ref(db, `creators/${newCode}`), newCode);
+                currentUser.lastCreatorCodeChange = new Date().toISOString();
             }
 
-            const oldName = currentUser.username;
             currentUser.username = newName;
             if (tempAvatarData) {
                 currentUser.avatar = tempAvatarData;
             }
 
-            const dbUserIndex = users.findIndex(u => u.username === oldName);
-            if (dbUserIndex > -1) {
-                users[dbUserIndex] = {
-                    ...users[dbUserIndex],
-                    username: currentUser.username,
-                    avatar: currentUser.avatar,
-                    lastCreatorCodeChange: currentUser.lastCreatorCodeChange
-                };
-            }
+            // Alten User-Pfad löschen und neu setzen
+            await remove(ref(db, `users/${oldName}`));
+            await set(ref(db, `users/${newName}`), currentUser);
 
-            // In IndexedDB gekaufte Beats updaten
-            beats.forEach(beat => {
-                const buyIndex = beat.purchasedBy.indexOf(oldName);
-                if (buyIndex > -1) {
-                    beat.purchasedBy[buyIndex] = newName;
-                    saveBeatToDB(beat);
+            // Gekaufte Beats updaten
+            beats.forEach(async (beat) => {
+                if(beat.purchasedBy) {
+                    const buyIndex = beat.purchasedBy.indexOf(oldName);
+                    if (buyIndex > -1) {
+                        beat.purchasedBy[buyIndex] = newName;
+                        await set(ref(db, `beats/${beat.id}`), beat);
+                    }
                 }
             });
 
-            localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
             document.getElementById('profile-name-display').innerText = currentUser.username;
             document.getElementById('header-avatar').src = currentUser.avatar;
             updateCoinsDisplay();
             showSuccessToast("Einstellungen erfolgreich gespeichert!");
             showView('home');
-        }
+        };
 
-        // --- HOCHLADEN LOGIK ---
-        function updateFileName(input, labelId) {
+        window.updateFileName = function(input, labelId) {
             const label = document.getElementById(labelId);
             if (input.files && input.files.length > 0) {
                 label.innerText = input.files[0].name;
             } else {
                 label.innerText = "Klicke hier, um eine Audiodatei auszuwählen";
             }
-        }
+        };
 
-        function previewCover(input) {
+        window.previewCover = function(input) {
             const preview = document.getElementById('cover-preview');
             const placeholder = document.getElementById('cover-placeholder');
             if (input.files && input.files[0]) {
@@ -908,11 +902,10 @@
                 }
                 reader.readAsDataURL(input.files[0]);
             }
-        }
+        };
 
-        function handleUpload(event) {
+        window.handleUpload = function(event) {
             event.preventDefault();
-            
             showToast("Dein Beat wird hochgeladen..", "hourglass");
 
             const title = document.getElementById('beat-title').value.trim();
@@ -936,20 +929,18 @@
 
             audioReader.onload = function(eAudio) {
                 coverReader.onload = async function(eCover) {
+                    const beatId = 'beat-' + Date.now();
                     const newBeat = {
-                        id: 'beat-' + Date.now(),
+                        id: beatId,
                         title: title,
                         audioData: eAudio.target.result,
                         audioName: audioFile.name,
                         coverData: eCover.target.result,
                         cost: finalCost,
-                        purchasedBy: []
+                        purchasedBy: ["placeholder_init"] // Hilfs-Array-Init für Firebase
                     };
 
-                    try {
-                        await saveBeatToDB(newBeat);
-                        beats.push(newBeat);
-                        
+                    set(ref(db, 'beats/' + beatId), newBeat).then(() => {
                         hideToast();
                         showSuccessToast("Beat erfolgreich veröffentlicht!");
                         document.getElementById('beat-title').value = '';
@@ -958,24 +949,23 @@
                         document.getElementById('audio-label').innerText = "Klicke hier, um eine Audiodatei auszuwählen";
                         document.getElementById('cover-preview').classList.add('hidden');
                         document.getElementById('cover-placeholder').classList.remove('hidden');
-                        renderBeats();
                         showView('home');
-                    } catch (err) {
+                    }).catch((err) => {
                         hideToast();
-                        showErrorToast("Fehler beim Speichern in IndexedDB.");
+                        showErrorToast("Fehler beim Speichern in Firebase.");
                         console.error(err);
-                    }
+                    });
                 }
                 coverReader.readAsDataURL(coverImage);
             }
             audioReader.readAsDataURL(audioFile);
-        }
+        };
 
-        // --- BEAT RENDERING & SUCHE ---
         function renderBeats() {
             const grid = document.getElementById('beat-grid');
             const placeholder = document.getElementById('no-beats-placeholder');
-            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const searchInput = document.getElementById('search-input');
+            const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
 
             let filtered = beats.filter(b => b.title.toLowerCase().includes(searchVal));
 
@@ -988,7 +978,8 @@
                 
                 grid.innerHTML = '';
                 filtered.forEach(beat => {
-                    const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+                    const hasPurchasedList = beat.purchasedBy || [];
+                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
                     
                     const card = document.createElement('div');
                     card.className = "bg-neutral-950 border border-neutral-900 rounded-3xl p-5 shadow-xl hover:border-neutral-800/80 apple-transition flex flex-col justify-between";
@@ -1023,12 +1014,11 @@
             }
         }
 
-        function searchBeats() {
+        window.searchBeats = function() {
             renderBeats();
-        }
+        };
 
-        // --- DETAILS / KAUFEN MODAL ---
-        function openBeatModal(beatId) {
+        window.openBeatModal = function(beatId) {
             const beat = beats.find(b => b.id === beatId);
             if (!beat) return;
             selectedBeatForModal = beat;
@@ -1043,7 +1033,8 @@
             badgeContainer.innerHTML = '';
             buttonsContainer.innerHTML = '';
 
-            const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
+            const hasPurchasedList = beat.purchasedBy || [];
+            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
 
             if (beat.cost === 0) {
                 badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="gift" class="w-3.5 h-3.5"></i> KOSTENLOSE LIZENZ</span>`;
@@ -1083,18 +1074,18 @@
             }, 50);
 
             lucide.createIcons();
-        }
+        };
 
-        function closeBeatModal() {
+        window.closeBeatModal = function() {
             const modal = document.getElementById('beat-modal');
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 selectedBeatForModal = null;
             }, 400);
-        }
+        };
 
-        async function purchaseBeat(beatId) {
+        window.purchaseBeat = async function(beatId) {
             const beat = beats.find(b => b.id === beatId);
             if (!beat) return;
 
@@ -1106,43 +1097,39 @@
 
             if (currentUser.username !== OWNER_NAME) {
                 currentUser.coins -= beat.cost;
-                const dbUser = users.find(u => u.username === currentUser.username);
-                if (dbUser) dbUser.coins = currentUser.coins;
-                localStorage.setItem('users', JSON.stringify(users));
+                await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
 
+            if (!beat.purchasedBy) beat.purchasedBy = [];
             beat.purchasedBy.push(currentUser.username);
-            await saveBeatToDB(beat);
+            
+            await set(ref(db, `beats/${beat.id}`), beat);
 
             updateCoinsDisplay();
             closeBeatModal();
             showSuccessToast("Erfolgreich freigeschaltet!");
-            renderBeats();
-        }
+        };
 
-        async function deleteBeat(beatId) {
+        window.deleteBeat = async function(beatId) {
             if (confirm("Möchtest du diesen Beat wirklich komplett löschen?")) {
-                try {
-                    await deleteBeatFromDB(beatId);
-                    beats = beats.filter(b => b.id !== beatId);
+                remove(ref(db, `beats/${beatId}`)).then(() => {
                     closeBeatModal();
                     showSuccessToast("Beat gelöscht.");
-                    renderBeats();
-                } catch (err) {
+                }).catch(() => {
                     showErrorToast("Fehler beim Löschen des Beats.");
-                    console.error(err);
-                }
+                });
             }
-        }
+        };
 
-        // --- ADMIN PANEL LOGIK (COINS & USERS) ---
         function renderUsers() {
             const usersList = document.getElementById('users-list');
             const deactivatedList = document.getElementById('deactivated-users-list');
             const deactivatedContainer = document.getElementById('deactivated-container');
             const creatorsList = document.getElementById('creators-list');
             const creatorContainer = document.getElementById('creator-container');
+
+            if (!usersList) return;
 
             usersList.innerHTML = '';
             deactivatedList.innerHTML = '';
@@ -1241,7 +1228,7 @@
             lucide.createIcons();
         }
 
-        function modifyUserCoins(username, add) {
+        window.modifyUserCoins = async function(username, add) {
             const input = document.getElementById(`coins-add-${username}`);
             const amount = parseInt(input.value);
             if (isNaN(amount) || amount <= 0) return;
@@ -1255,64 +1242,54 @@
                     user.coins = Math.max(0, user.coins - amount);
                     showSuccessToast(`${amount} Münzen von ${username} abgezogen.`);
                 }
-                localStorage.setItem('users', JSON.stringify(users));
                 
-                if (currentUser && currentUser.username === username) {
-                    currentUser.coins = user.coins;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateCoinsDisplay();
-                }
+                await set(ref(db, `users/${username}/coins`), user.coins);
 
                 input.value = '';
-                renderUsers();
             }
-        }
+        };
 
-        function toggleUserActivation(username) {
+        window.toggleUserActivation = async function(username) {
             const user = users.find(u => u.username === username);
             if (user) {
                 user.deactivated = !user.deactivated;
-                localStorage.setItem('users', JSON.stringify(users));
+                await set(ref(db, `users/${username}/deactivated`), user.deactivated);
                 showSuccessToast(user.deactivated ? `Account ${username} deaktiviert.` : `Account ${username} reaktiviert.`);
-                renderUsers();
             }
-        }
+        };
 
-        function toggleCreatorStatus(username) {
+        window.toggleCreatorStatus = async function(username) {
             const user = users.find(u => u.username === username);
             if (!user) return;
 
             const index = creators.indexOf(username);
             if (index > -1) {
-                creators.splice(index, 1);
+                await remove(ref(db, `creators/${username}`));
                 showSuccessToast(`${username} ist kein Creator mehr.`);
             } else {
-                creators.push(username);
+                await set(ref(db, `creators/${username}`), username);
                 showSuccessToast(`${username} als Creator eingetragen!`);
             }
-            localStorage.setItem('creators', JSON.stringify(creators));
-            renderUsers();
-        }
+        };
 
-        // --- CREATOR CODES ---
-        function openCreatorModal() {
+        window.openCreatorModal = function() {
             const modal = document.getElementById('creator-modal');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
             }, 50);
-        }
+        };
 
-        function closeCreatorModal() {
+        window.closeCreatorModal = function() {
             const modal = document.getElementById('creator-modal');
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.getElementById('creator-code-input').value = '';
             }, 400);
-        }
+        };
 
-        function submitCreatorCode() {
+        window.submitCreatorCode = async function() {
             const codeInput = document.getElementById('creator-code-input').value.trim();
             if (!codeInput) return;
 
@@ -1321,9 +1298,7 @@
             if (match) {
                 if (currentUser.username !== OWNER_NAME) {
                     currentUser.coins += 230;
-                    const dbUser = users.find(u => u.username === currentUser.username);
-                    if (dbUser) dbUser.coins = currentUser.coins;
-                    localStorage.setItem('users', JSON.stringify(users));
+                    await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 }
                 updateCoinsDisplay();
@@ -1333,9 +1308,8 @@
                 closeCreatorModal();
                 showErrorToast("Code ist ungültig oder existiert nicht.");
             }
-        }
+        };
 
-        // --- TOAST SYSTEM ---
         function showToast(text, iconName) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').innerText = text;
