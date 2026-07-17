@@ -28,6 +28,21 @@
         .animate-hourglass {
             animation: rotateHourglass 2s infinite ease-in-out;
         }
+        
+        /* Neue, flüssige Animation für den Seitenwechsel */
+        @keyframes smoothFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.99);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .view-section:not(.hidden) {
+            animation: smoothFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden relative">
@@ -230,18 +245,28 @@
             </section>
 
             <!-- ================= VIEW: ÜBER UNS ================= -->
-            <section id="view-about" class="view-section hidden max-w-3xl mx-auto">
+            <!-- max-w-3xl wurde zu max-w-5xl vergrößert für einen größeren Frame -->
+            <section id="view-about" class="view-section hidden max-w-5xl mx-auto">
                 <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
                     <h2 class="text-2xl font-bold tracking-wider text-blue-500 uppercase text-center mb-8">ÜBER UNS</h2>
                     <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-                        <img id="about-owner-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=LeoDisstrack-YT2" class="w-28 h-28 rounded-full border-2 border-neutral-800 object-cover bg-neutral-900 shadow-xl">
+                        <!-- Profilbild verwendet jetzt LeoDisstrack-YTnewprofi.jpg -->
+                        <img id="about-owner-avatar" src="LeoDisstrack-YTnewprofi.jpg" class="w-28 h-28 rounded-full border-2 border-neutral-800 object-cover bg-neutral-900 shadow-xl">
                         <div class="space-y-4 flex-1 text-center md:text-left">
                             <h3 id="about-owner-name" class="text-xl font-bold text-white tracking-wide">LeoDisstrack-YT2</h3>
                             <p class="text-neutral-300 leading-relaxed text-sm md:text-base whitespace-pre-line">
-                                Hallo liebe Leute! Danke erstmal fürs besuchen diesem Beats Shop. Hier findet ihr Beats die Beat Coins kosten oder Kostenlos sind. Keine sorge, die Beat Coins kosten kein echtes geld xd. Naja aufjedenfall sind das Lizenzen ob ein Wasserzeichen drinne ist oder keins und ob ihr den Beat auf Spotify und co. hochladen dürft oder nicht. Auf Soundcloud darfst du sie immer hochladen.
+                                Hallo liebe Leute! Danke erstmal fürs besuchen diesem Beats Shop. Hier findet ihr Beats die Beat Coins kosten oder Kostenlos sind. Keine sorge, die Beat Coins kosten kein echtes geld xd. Naja aufjedenfall sind das Lizenzen ob ein Wasserzeichen drinne ist oder keins und ob ihr den Beat auf Spotify und co. hochladen dürfen oder nicht. Auf Soundcloud darfst du sie immer hochladen.
 
                                 Ich bin Leo aka. LeoDisstrack-YT. Ich betreibe einen Musik Kanal wo Disstracks hochgeladen werden. Ich erstelle auch eigene Beats wie bei dem VBC_Official Disstrack. Ich gebe euch auch paar Beats für euren Musik-Projekt.
                             </p>
+                            
+                            <!-- Neue blaue Überschrift und dein Text -->
+                            <div class="pt-4 border-t border-neutral-900 text-left">
+                                <h4 class="text-lg font-bold text-blue-500 tracking-wide uppercase mb-2">WIE BEKOMME ICH BEAT COINS?</h4>
+                                <p class="text-neutral-300 leading-relaxed text-sm md:text-base">
+                                    Ich habe ja eben was über Beat Coins gesagt. Ihr bekommt 70 Beat Coins wenn ihr einen Account in diesem Beat Shop erstellt. Was du ja gemacht hast! Du bekommst auch Beat Coins wenn du einen Creator Code einlöst. (Du bekommst 230 Beat Coins.) Viel Spaß mit den Beat coins. ^^
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -529,9 +554,7 @@
                 const adminAccount = users.find(u => u.isTrueAdmin === true || u.username === OWNER_NAME);
                 if (adminAccount) {
                     const aboutName = document.getElementById('about-owner-name');
-                    const aboutAvatar = document.getElementById('about-owner-avatar');
                     if (aboutName) aboutName.innerText = adminAccount.username;
-                    if (aboutAvatar) aboutAvatar.src = adminAccount.avatar;
                 }
 
                 if (currentUser) {
