@@ -1213,36 +1213,62 @@
                             player.addEventListener('timeupdate', () => {
                                 if(player.currentTime >= 15) {
                                     player.pause(); player.currentTime = 0;
-                                    showErrorToast("Geplante Beats bieten maximal 15 Sekunden Vorschau!");
+                                    showErrorToast("Du darfst nur 15 Sekunden in den Beat reinhören.");
                                 }
                             });
                         }
                     }, 100);
                 } else if (isPurchased) {
+                    // Bereits gekauft oder Admin: Darf komplett hören
                     actions.innerHTML = `
                         <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
-                            <audio controls class="w-full" src="${beat.audioData}"></audio>
+                            <audio id="purchased-player" controls class="w-full" src="${beat.audioData}"></audio>
                         </div>
                         <a href="${beat.audioData}" download="${beat.audioName}" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm">Download Starten</a>
                     `;
-                } else {
-                    actions.innerHTML = `
-                        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
-                            <audio id="preview-player-50" controls class="w-full" src="${beat.audioData}"></audio>
-                        </div>
-                        <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-green-600 text-white font-bold py-3.5 rounded-xl text-sm">Für ${beat.cost} Coins kaufen</button>
-                    `;
+                    // Wenn kostenlos, läuft er bis zum Ende durch ohne Text anzuzeigen
                     setTimeout(() => {
-                        const player = document.getElementById('preview-player-50');
-                        if(player) {
+                        const player = document.getElementById('purchased-player');
+                        if(player && beat.cost > 0 && !isTrueOwner && !currentUser.isTrueAdmin) {
+                            // Falls es fälschlicherweise hier reinkommt, greift das Standardlimit für kostenpflichtige Beats
                             player.addEventListener('timeupdate', () => {
                                 if(player.currentTime >= 50) {
                                     player.pause(); player.currentTime = 0;
-                                    showErrorToast("Vorschau-Modus stoppt nach 50 Sekunden.");
+                                    showErrorToast("Du darfst nur 50 Sekunden in den Beat reinhören.");
                                 }
                             });
                         }
                     }, 100);
+                } else {
+                    // Noch nicht gekauft: Prüfen ob Kostenlos oder Kostenpflichtig
+                    if (beat.cost === 0) {
+                        // Eigentlich durch isPurchased abgedeckt, hier als Fallback für kostenlose Einzelbeats vor Kauf
+                        actions.innerHTML = `
+                            <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+                                <audio controls class="w-full" src="${beat.audioData}"></audio>
+                            </div>
+                            <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl text-sm">Kostenlos freischalten</button>
+                        `;
+                    } else {
+                        // Kostenpflichtig und nicht geplant -> 50 Sekunden Limit
+                        actions.innerHTML = `
+                            <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+                                <audio id="preview-player-50" controls class="w-full" src="${beat.audioData}"></audio>
+                            </div>
+                            <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-green-600 text-white font-bold py-3.5 rounded-xl text-sm">Für ${beat.cost} Coins kaufen</button>
+                        `;
+                        setTimeout(() => {
+                            const player = document.getElementById('preview-player-50');
+                            if(player) {
+                                player.addEventListener('timeupdate', () => {
+                                    if(player.currentTime >= 50) {
+                                        player.pause(); player.currentTime = 0;
+                                        showErrorToast("Du darfst nur 50 Sekunden in den Beat reinhören.");
+                                    }
+                                });
+                            }
+                        }, 100);
+                    }
                 }
 
                 if (isTrueOwner || currentUser.isTrueAdmin) {
@@ -1294,16 +1320,29 @@
                     `;
                     tracksArea.appendChild(row);
 
-                    // Vorschau-Limitierungen definieren: Kostenpflichtige Packs haben 50 Sekunden Limit, Kostenlose unbegrenzt
+                    // Zeit-Limitierungen für Tracks innerhalb eines Kits
                     setTimeout(() => {
                         const player = document.getElementById(`kit-player-${tIdx}`);
-                        if(player && beat.cost > 0 && !isPurchased) {
-                            player.addEventListener('timeupdate', () => {
-                                if(player.currentTime >= 50) {
-                                    player.pause(); player.currentTime = 0;
-                                    showErrorToast("Kostenpflichtiges Kit: Vorschau je Track maximal 50 Sekunden.");
-                                }
-                            });
+                        if(player) {
+                            // 1. Wenn ein Beat geplant ist (Kits haben standardmäßig kein systemIsScheduled Feld im Upload, aber falls aktiviert)
+                            if (beat.isScheduled && systemIsScheduled) {
+                                player.addEventListener('timeupdate', () => {
+                                    if(player.currentTime >= 15) {
+                                        player.pause(); player.currentTime = 0;
+                                        showErrorToast("Du darfst nur 15 Sekunden in den Beat reinhören.");
+                                    }
+                                });
+                            }
+                            // 3. Wenn der Beat kostet und nicht gekauft wurde -> 50 Sekunden Limit
+                            else if (beat.cost > 0 && !isPurchased) {
+                                player.addEventListener('timeupdate', () => {
+                                    if(player.currentTime >= 50) {
+                                        player.pause(); player.currentTime = 0;
+                                        showErrorToast("Du darfst nur 50 Sekunden in den Beat reinhören.");
+                                    }
+                                });
+                            }
+                            // 2. Wenn ein Beat kostenlos ist (oder bereits freigeschaltet wurde), läuft er unbegrenzt durch (kein Event-Listener nötig, der abbricht)
                         }
                     }, 100);
                 });
