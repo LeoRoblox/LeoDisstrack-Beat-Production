@@ -379,6 +379,21 @@
                     <div class="space-y-4" id="users-list"></div>
                 </div>
 
+                <!-- Frame: Verwaltung / Aktionen -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="text-neutral-400 w-6 h-6"></i> Verwaltung
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Weitere Verwaltungsaktionen.</p>
+
+                    <button onclick="toggleResetVerifyList()" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-blue-500/50 hover:text-blue-500 apple-transition flex items-center gap-2">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset Verify Kauf
+                    </button>
+
+                    <div id="reset-verify-list" class="space-y-3 mt-5 hidden"></div>
+                    <p id="reset-verify-empty" class="hidden text-neutral-500 text-sm text-center py-4">Aktuell hat niemand die Verifizierung gekauft.</p>
+                </div>
+
                 <!-- Dynamisches Frame: Deaktivierte Accounts -->
                 <div id="deactivated-container" class="bg-neutral-950 border border-red-950/40 rounded-3xl p-8 shadow-2xl hidden">
                     <h2 class="text-xl font-bold tracking-tight text-red-400 mb-2 flex items-center gap-2">
@@ -1446,6 +1461,8 @@
             if (hasVerified) verifiedAdminContainer.classList.remove('hidden');
             else verifiedAdminContainer.classList.add('hidden');
 
+            renderResetVerifyList();
+
             lucide.createIcons();
         }
 
@@ -1524,6 +1541,66 @@
 
             lucide.createIcons();
         }
+
+        let resetVerifyListVisible = false;
+
+        window.toggleResetVerifyList = function() {
+            resetVerifyListVisible = !resetVerifyListVisible;
+            const list = document.getElementById('reset-verify-list');
+            if (resetVerifyListVisible) {
+                renderResetVerifyList();
+                list.classList.remove('hidden');
+            } else {
+                list.classList.add('hidden');
+                document.getElementById('reset-verify-empty').classList.add('hidden');
+            }
+        };
+
+        function renderResetVerifyList() {
+            if (!resetVerifyListVisible) return;
+            const list = document.getElementById('reset-verify-list');
+            const emptyMsg = document.getElementById('reset-verify-empty');
+            if (!list) return;
+
+            list.innerHTML = '';
+            const pendingUsers = users.filter(u => u.verificationPending);
+
+            if (pendingUsers.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                pendingUsers.forEach(user => {
+                    const row = document.createElement('button');
+                    row.onclick = () => resetVerifyPurchase(user.username);
+                    row.className = "w-full flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 hover:border-blue-500/50 rounded-2xl text-left apple-transition";
+                    row.innerHTML = `
+                        <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                        <div>
+                            <p class="font-bold text-white">${user.username}</p>
+                            <p class="text-xs text-neutral-500">Klicken, um den Kauf-Status zurückzusetzen</p>
+                        </div>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        window.resetVerifyPurchase = async function(username) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.verificationPending = false;
+                await set(ref(db, `users/${username}/verificationPending`), false);
+                showSuccessToast(`${username} kann die Verifizierung erneut kaufen.`);
+                renderResetVerifyList();
+                if (currentUser && currentUser.username === username) {
+                    currentUser.verificationPending = false;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateBuyVerificationUI();
+                }
+            }
+        };
 
         window.deleteVerificationPurchase = async function(id) {
             await remove(ref(db, `verificationPurchases/${id}`));
