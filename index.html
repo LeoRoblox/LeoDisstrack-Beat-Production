@@ -405,6 +405,16 @@
                     <p class="text-neutral-400 text-sm mb-6">User, die du zu Verifizierten Künstlern ernannt hast. Hier kannst du sie wieder entfernen.</p>
                     <div class="space-y-4" id="verified-artists-admin-list"></div>
                 </div>
+
+                <!-- Statisches Frame: Verifizierung gekauft (bleibt immer sichtbar) -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="badge-check" class="text-blue-500 w-6 h-6"></i> Verifizierung gekauft
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Benachrichtigungen über gekaufte Künstler-Verifizierungen.</p>
+                    <div class="space-y-4" id="verification-purchases-list"></div>
+                    <p id="verification-purchases-empty" class="text-neutral-500 text-sm text-center py-6">Aktuell keine Benachrichtigungen.</p>
+                </div>
             </section>
 
             <!-- ================= VIEW: VERIFIZIERTER KÜNSTLER (ÖFFENTLICH) ================= -->
@@ -416,6 +426,20 @@
                     <p class="text-neutral-400 text-sm mb-6">Diese User wurden von LEODISSTRACK als Künstler verifiziert.</p>
                     <div class="space-y-4" id="verified-artists-public-list"></div>
                     <p id="verified-artists-empty" class="text-neutral-500 text-sm text-center py-6 hidden">Aktuell wurde noch niemand verifiziert.</p>
+                </div>
+
+                <!-- Verifizierung kaufen -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <h2 class="text-xl font-bold tracking-tight text-white">Verifizierter Künstler Abzeichen</h2>
+                        <span class="bg-neutral-900 border border-neutral-700 text-neutral-300 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">BETA</span>
+                    </div>
+                    <p class="text-neutral-400 text-sm">Du willst als Künstler Verifiziert werden? Dann kauf dir die Verifizierung für 433 Beat Coins.</p>
+                    <p class="text-neutral-600 text-xs font-bold uppercase tracking-widest mt-3">VORTEILE KOMMEN BALD</p>
+
+                    <button onclick="buyVerification()" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                        <i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Verifizierung Kaufen
+                    </button>
                 </div>
             </section>
 
@@ -581,6 +605,7 @@
         let beats = [];
         let users = [];
         let creators = {};
+        let verificationPurchases = {};
         let currentUser = null;
         let selectedBeatForModal = null;
         let isTrueOwner = false; // Sichere Erfassung der Adminrechte
@@ -629,6 +654,12 @@
                 const data = snapshot.val();
                 creators = data ? data : {};
                 renderUsers();
+            });
+
+            onValue(ref(db, 'verificationPurchases'), (snapshot) => {
+                const data = snapshot.val();
+                verificationPurchases = data ? data : {};
+                renderVerificationPurchases();
             });
         }
 
@@ -1499,6 +1530,10 @@
             if (user) {
                 user.isVerifiedArtist = !user.isVerifiedArtist;
                 await set(ref(db, `users/${username}/isVerifiedArtist`), user.isVerifiedArtist);
+                if (user.isVerifiedArtist && user.verificationPending) {
+                    user.verificationPending = false;
+                    await set(ref(db, `users/${username}/verificationPending`), false);
+                }
                 showSuccessToast(user.isVerifiedArtist ? `${username} ist jetzt Verifizierter Künstler!` : `${username} ist kein Verifizierter Künstler mehr.`);
             }
         };
