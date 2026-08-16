@@ -177,6 +177,10 @@
                     <button onclick="showView('coins')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-coins">
                         <i data-lucide="users" class="w-4 h-4"></i> Admin Panel
                     </button>
+
+                    <button onclick="showView('verified')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-verified">
+                        <i data-lucide="badge-check" class="w-4 h-4 text-blue-500"></i> Verifizierter Künstler
+                    </button>
                 </nav>
 
                 <!-- Rechts: Suchfeld, Coins & Profil -->
@@ -388,6 +392,27 @@
                     <p class="text-neutral-400 text-sm mb-6">User, deren Name als Gutscheincode für 230 Münzen fungiert.</p>
                     <div class="space-y-4" id="creators-list"></div>
                 </div>
+
+                <!-- Dynamisches Frame: Verifizierte Künstler -->
+                <div id="verified-artists-container" class="bg-neutral-950 border border-blue-950/40 rounded-3xl p-8 shadow-2xl hidden">
+                    <h2 class="text-xl font-bold tracking-tight text-blue-400 mb-2 flex items-center gap-2">
+                        <i data-lucide="badge-check" class="text-blue-500 w-6 h-6"></i> VERIFIZIERTE KÜNSTLER
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">User, die du zu Verifizierten Künstlern ernannt hast. Hier kannst du sie wieder entfernen.</p>
+                    <div class="space-y-4" id="verified-artists-admin-list"></div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW: VERIFIZIERTER KÜNSTLER (ÖFFENTLICH) ================= -->
+            <section id="view-verified" class="view-section hidden max-w-4xl mx-auto space-y-8">
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="badge-check" class="text-blue-500 w-6 h-6"></i> Verifizierter Künstler
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Diese User wurden von LEODISSTRACK als Künstler verifiziert.</p>
+                    <div class="space-y-4" id="verified-artists-public-list"></div>
+                    <p id="verified-artists-empty" class="text-neutral-500 text-sm text-center py-6 hidden">Aktuell wurde noch niemand verifiziert.</p>
+                </div>
             </section>
 
             <!-- ================= VIEW 4: EINSTELLUNGEN ================= -->
@@ -414,7 +439,10 @@
 
                         <!-- Namen ändern -->
                         <div>
-                            <label for="settings-username" class="block text-sm font-medium text-neutral-300 mb-2">Namen ändern</label>
+                            <label for="settings-username" class="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-1.5">
+                                Namen ändern
+                                <i data-lucide="badge-check" id="settings-verified-badge" class="hidden w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
+                            </label>
                             <input type="text" id="settings-username" required class="w-full bg-neutral-900 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white font-medium">
                         </div>
 
@@ -708,7 +736,8 @@
                 deactivated: false,
                 lastCreatorCodeChange: null,
                 customCreatorCode: "",
-                isTrueAdmin: usernameInput === OWNER_NAME ? true : false
+                isTrueAdmin: usernameInput === OWNER_NAME ? true : false,
+                isVerifiedArtist: false
             };
 
             set(ref(db, 'users/' + usernameInput), newUser).then(() => {
@@ -827,6 +856,11 @@
                 document.getElementById('btn-coins').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-coins').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
                 renderUsers();
+            } else if (viewName === 'verified') {
+                document.getElementById('view-verified').classList.remove('hidden');
+                document.getElementById('btn-verified').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-verified').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+                renderVerifiedArtists();
             } else if (viewName === 'settings') {
                 document.getElementById('view-settings').classList.remove('hidden');
                 prepareSettingsView();
@@ -841,6 +875,13 @@
             document.getElementById('settings-username').value = currentUser.username;
             document.getElementById('settings-avatar-preview').src = currentUser.avatar;
             document.getElementById('settings-avatar-file').value = "";
+
+            const verifiedBadge = document.getElementById('settings-verified-badge');
+            if (currentUser.isVerifiedArtist) {
+                verifiedBadge.classList.remove('hidden');
+            } else {
+                verifiedBadge.classList.add('hidden');
+            }
 
             const isCreator = creators[currentUser.username] !== undefined;
             const creatorSection = document.getElementById('settings-creator-section');
@@ -1219,15 +1260,19 @@
             const deactivatedContainer = document.getElementById('deactivated-container');
             const creatorsList = document.getElementById('creators-list');
             const creatorContainer = document.getElementById('creator-container');
+            const verifiedAdminList = document.getElementById('verified-artists-admin-list');
+            const verifiedAdminContainer = document.getElementById('verified-artists-container');
 
             if (!usersList) return;
 
             usersList.innerHTML = '';
             deactivatedList.innerHTML = '';
             creatorsList.innerHTML = '';
+            verifiedAdminList.innerHTML = '';
 
             let hasDeactivated = false;
             let hasCreators = false;
+            let hasVerified = false;
 
             users.forEach(user => {
                 if (user.isTrueAdmin || user.username === OWNER_NAME) return;
@@ -1235,6 +1280,7 @@
                 const isDeactivated = user.deactivated;
                 const isCreator = creators[user.username] !== undefined;
                 const activeCreatorCode = isCreator ? (creators[user.username] || user.username) : user.username;
+                const isVerifiedArtist = !!user.isVerifiedArtist;
 
                 const userRow = document.createElement('div');
                 userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
@@ -1243,7 +1289,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
                         <div>
-                            <p class="font-bold text-white">${user.username}</p>
+                            <p class="font-bold text-white flex items-center gap-1.5">${user.username} ${isVerifiedArtist ? '<i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>' : ''}</p>
                             <p class="text-xs text-neutral-500">Münzen: ${user.coins} | Angemeldet</p>
                         </div>
                     </div>
@@ -1260,6 +1306,10 @@
                         
                         <button onclick="toggleCreatorStatus('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isCreator ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-transparent' : 'border-neutral-800 hover:border-yellow-500/50 hover:text-yellow-500'} apple-transition flex items-center gap-1.5">
                             <i data-lucide="star" class="w-3.5 h-3.5"></i> ${isCreator ? 'Creator entziehen' : 'Zu Creator machen'}
+                        </button>
+
+                        <button onclick="toggleVerifiedArtist('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isVerifiedArtist ? 'border-blue-500/30 bg-blue-500/10 text-blue-500 hover:bg-transparent' : 'border-neutral-800 hover:border-blue-500/50 hover:text-blue-500'} apple-transition flex items-center gap-1.5">
+                            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> ${isVerifiedArtist ? 'Verifizierung entziehen' : 'Verifizierter Künstler'}
                         </button>
 
                         <button onclick="toggleUserActivation('${user.username}')" class="p-2 border border-red-950/40 hover:bg-red-950/20 text-red-400 rounded-xl apple-transition" title="Account deaktivieren">
@@ -1309,6 +1359,25 @@
                     `;
                     creatorsList.appendChild(creatorRow);
                 }
+
+                if (isVerifiedArtist && !isDeactivated) {
+                    hasVerified = true;
+                    const verifiedRow = document.createElement('div');
+                    verifiedRow.className = "flex items-center justify-between p-4 bg-blue-950/15 border border-blue-900/20 rounded-2xl";
+                    verifiedRow.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div class="flex items-center gap-1.5">
+                                <p class="font-bold text-white">${user.username}</p>
+                                <i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
+                            </div>
+                        </div>
+                        <button onclick="toggleVerifiedArtist('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Verifizierung entfernen">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    verifiedAdminList.appendChild(verifiedRow);
+                }
             });
 
             if (hasDeactivated) deactivatedContainer.classList.remove('hidden');
@@ -1316,6 +1385,38 @@
 
             if (hasCreators) creatorContainer.classList.remove('hidden');
             else creatorContainer.classList.add('hidden');
+
+            if (hasVerified) verifiedAdminContainer.classList.remove('hidden');
+            else verifiedAdminContainer.classList.add('hidden');
+
+            lucide.createIcons();
+        }
+
+        function renderVerifiedArtists() {
+            const publicList = document.getElementById('verified-artists-public-list');
+            const emptyMsg = document.getElementById('verified-artists-empty');
+            if (!publicList) return;
+
+            publicList.innerHTML = '';
+            const verifiedUsers = users.filter(u => u.isVerifiedArtist && !u.deactivated);
+
+            if (verifiedUsers.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                verifiedUsers.forEach(user => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
+                    row.innerHTML = `
+                        <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                        <div class="flex items-center gap-1.5">
+                            <p class="font-bold text-white">${user.username}</p>
+                            <i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
+                        </div>
+                    `;
+                    publicList.appendChild(row);
+                });
+            }
 
             lucide.createIcons();
         }
@@ -1367,6 +1468,15 @@
                     await set(ref(db, `users/${username}/customCreatorCode`), initialCode);
                 }
                 showSuccessToast(`${username} als Creator eingetragen!`);
+            }
+        };
+
+        window.toggleVerifiedArtist = async function(username) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.isVerifiedArtist = !user.isVerifiedArtist;
+                await set(ref(db, `users/${username}/isVerifiedArtist`), user.isVerifiedArtist);
+                showSuccessToast(user.isVerifiedArtist ? `${username} ist jetzt Verifizierter Künstler!` : `${username} ist kein Verifizierter Künstler mehr.`);
             }
         };
 
