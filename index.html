@@ -375,7 +375,7 @@
                     <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
                         <i data-lucide="users" class="text-yellow-500 w-6 h-6"></i> Aktive User verwalten
                     </h2>
-                    <p class="text-neutral-400 text-sm mb-6">Vergebe Coins, deaktiviere Accounts, ernenne sie zu Creatoren oder verifiziere sie als Künstler.</p>
+                    <p class="text-neutral-400 text-sm mb-6">Vergebe Coins, deaktiviere Accounts oder ernenne sie zu Creatoren.</p>
                     <div class="space-y-4" id="users-list"></div>
                 </div>
 
@@ -437,9 +437,10 @@
                     <p class="text-neutral-400 text-sm">Du willst als Künstler Verifiziert werden? Dann kauf dir die Verifizierung für 433 Beat Coins.</p>
                     <p class="text-neutral-600 text-xs font-bold uppercase tracking-widest mt-3">VORTEILE KOMMEN BALD</p>
 
-                    <button onclick="buyVerification()" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                    <button onclick="buyVerification()" id="buy-verification-btn" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
                         <i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Verifizierung Kaufen
                     </button>
+                    <p id="buy-verification-pending-text" class="hidden text-neutral-500 text-xs mt-3">Warte bis Leo dir das Abzeichen gibt.</p>
                 </div>
             </section>
 
@@ -644,6 +645,7 @@
                             document.getElementById('profile-name-display').innerText = currentUser.username;
                             document.getElementById('header-avatar').src = currentUser.avatar;
                             updateCoinsDisplay();
+                            updateBuyVerificationUI();
                         }
                     }
                 }
@@ -911,6 +913,7 @@
                 document.getElementById('btn-verified').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-verified').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
                 renderVerifiedArtists();
+                updateBuyVerificationUI();
             } else if (viewName === 'updates') {
                 document.getElementById('view-updates').classList.remove('hidden');
                 document.getElementById('btn-updates').classList.add('text-white', 'bg-neutral-800');
@@ -1474,6 +1477,94 @@
 
             lucide.createIcons();
         }
+
+        function updateBuyVerificationUI() {
+            const btn = document.getElementById('buy-verification-btn');
+            const pendingText = document.getElementById('buy-verification-pending-text');
+            if (!btn || !currentUser) return;
+
+            if (currentUser.verificationPending) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = `<i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Du hast es bereits gekauft.`;
+                if (pendingText) pendingText.classList.remove('hidden');
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = `<i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Verifizierung Kaufen`;
+                if (pendingText) pendingText.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function renderVerificationPurchases() {
+            const list = document.getElementById('verification-purchases-list');
+            const emptyMsg = document.getElementById('verification-purchases-empty');
+            if (!list) return;
+
+            list.innerHTML = '';
+            const entries = Object.entries(verificationPurchases || {});
+
+            if (entries.length === 0) {
+                if (emptyMsg) emptyMsg.classList.remove('hidden');
+            } else {
+                if (emptyMsg) emptyMsg.classList.add('hidden');
+                entries.forEach(([id, purchase]) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-4 bg-blue-950/15 border border-blue-900/20 rounded-2xl";
+                    row.innerHTML = `
+                        <p class="text-sm text-neutral-200"><span class="font-bold text-white">${purchase.username}</span> hat die Verifizierung zu "Künstler" gekauft.</p>
+                        <button onclick="deleteVerificationPurchase('${id}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Benachrichtigung löschen">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        window.deleteVerificationPurchase = async function(id) {
+            await remove(ref(db, `verificationPurchases/${id}`));
+        };
+
+        window.buyVerification = async function() {
+            if (!currentUser) return;
+
+            if (currentUser.verificationPending) {
+                showErrorToast("Du hast die Verifizierung bereits gekauft. Warte bis Leo sie bestätigt.");
+                return;
+            }
+
+            if (currentUser.isVerifiedArtist) {
+                showErrorToast("Du bist bereits ein Verifizierter Künstler!");
+                return;
+            }
+
+            if (currentUser.coins < 433) {
+                showErrorToast("Du hast leider nicht genug Beat Coins für die Verifizierung! :(");
+                return;
+            }
+
+            currentUser.coins -= 433;
+            await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
+
+            currentUser.verificationPending = true;
+            await set(ref(db, `users/${currentUser.username}/verificationPending`), true);
+
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            const purchaseId = Date.now().toString();
+            await set(ref(db, `verificationPurchases/${purchaseId}`), {
+                username: currentUser.username,
+                timestamp: purchaseId
+            });
+
+            updateCoinsDisplay();
+            updateBuyVerificationUI();
+            showSuccessToast("Verifizierung gekauft! Warte bis Leo dir das Abzeichen gibt.");
+        };
 
         window.modifyUserCoins = async function(username, add) {
             const input = document.getElementById(`coins-add-${username}`);
