@@ -151,13 +151,6 @@
                     <button onclick="showView('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-white bg-neutral-800 flex items-center gap-2" id="btn-home">
                         <i data-lucide="home" class="w-4 h-4"></i> Startseite
                     </button>
-                    <button onclick="openAboutUsModal()" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2">
-                        <i data-lucide="info" class="w-4 h-4"></i> Über uns
-                    </button>
-                    <!-- NEU: Verifizierte Künstler Button im Header -->
-                    <button onclick="openVerifiedArtistsModal()" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-neutral-400 inline-block" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg> Verifizierte Künstler
-                    </button>
                     
                     <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Beat hochladen
@@ -187,7 +180,7 @@
                         
                         <div class="text-right hidden sm:block cursor-pointer" onclick="toggleProfileDropdown()">
                             <p class="text-xs text-neutral-500 flex items-center justify-end gap-1">Angemeldet als <i data-lucide="chevron-down" class="w-3 h-3"></i></p>
-                            <p class="text-sm font-semibold text-white flex items-center justify-end gap-1" id="profile-name-display"></p>
+                            <p class="text-sm font-semibold text-white" id="profile-name-display"></p>
                         </div>
                         
                         <!-- Dropdown Menu -->
@@ -344,15 +337,6 @@
                     <p class="text-neutral-400 text-sm mb-6">User, deren Name als Gutscheincode für 230 Münzen fungiert.</p>
                     <div class="space-y-4" id="creators-list"></div>
                 </div>
-
-                <!-- Dynamisches Frame: Verifizierte Künstler Liste im Admin Panel -->
-                <div id="verified-artists-admin-container" class="bg-neutral-950 border border-purple-950/40 rounded-3xl p-8 shadow-2xl hidden">
-                    <h2 class="text-xl font-bold tracking-tight text-purple-400 mb-2 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-purple-400 inline-block" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg> VERIFIZIERTE KÜNSTLER
-                    </h2>
-                    <p class="text-neutral-400 text-sm mb-6">User mit dem offiziellen YouTube-Musiknoten-Status.</p>
-                    <div class="space-y-4" id="verified-artists-admin-list"></div>
-                </div>
             </section>
 
             <!-- ================= VIEW 4: EINSTELLUNGEN ================= -->
@@ -361,14 +345,6 @@
                     <h2 class="text-xl font-bold tracking-tight text-white mb-6 uppercase tracking-wider text-center text-blue-500 flex items-center justify-center gap-2">
                         <i data-lucide="settings" class="w-5 h-5"></i> Einstellungen
                     </h2>
-
-                    <!-- Status Banner für Verifizierten Künstler -->
-                    <div id="settings-verified-info" class="hidden mb-6 p-4 bg-purple-950/30 border border-purple-800/40 rounded-2xl text-center">
-                        <p class="text-sm font-semibold text-purple-300 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4 text-neutral-400 inline-block" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                            Du bist nun offizieller Künstler und wirst angezeigt.
-                        </p>
-                    </div>
 
                     <form onsubmit="handleSaveSettings(event)" class="space-y-6">
                         <!-- Profil ändern (Avatar Upload) -->
@@ -424,44 +400,6 @@
         <footer class="border-t border-neutral-900 py-6 text-center text-xs text-neutral-600 mt-auto">
             &copy; 2026 LEODISSTRACK BEAT PRODUCTION. Alle Rechte vorbehalten.
         </footer>
-    </div>
-
-    <!-- ================= ÜBER UNS MODAL ================= -->
-    <div id="about-us-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
-        <div class="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
-            <button onclick="closeAboutUsModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-            <div class="space-y-4 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto shadow-lg shadow-blue-500/5">
-                    <i data-lucide="info" class="text-blue-500 w-8 h-8"></i>
-                </div>
-                <h3 class="text-xl font-extrabold tracking-wider text-white uppercase">ÜBER UNS</h3>
-                <p class="text-neutral-400 text-sm leading-relaxed">
-                    Willkommen bei LEODISSTRACK BEAT PRODUCTION! Wir bieten hochqualitative Instrumentals und Beats für Künstler aller Art. Trete unserer Community bei, erhalte Beat Coins und nutze professionelle Sounds für deine eigenen Veröffentlichungen.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= VERIFIZIERTE KÜNSTLER MODAL ================= -->
-    <div id="verified-artists-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
-        <div class="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
-            <button onclick="closeVerifiedArtistsModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-            <div class="space-y-6">
-                <div class="text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mx-auto shadow-lg shadow-purple-500/5 mb-3">
-                        <svg class="w-8 h-8 text-neutral-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-extrabold tracking-wider text-white uppercase">VERIFIZIERTE KÜNSTLER</h3>
-                    <p class="text-neutral-500 text-xs mt-1">Offiziell verifizierte Creator und Musiker unserer Plattform.</p>
-                </div>
-                
-                <div id="verified-artists-list-modal" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
-            </div>
-        </div>
     </div>
 
     <!-- ================= BEAT PROFILE DETAILS MODAL ================= -->
@@ -528,24 +466,10 @@
         let beats = [];
         let users = JSON.parse(localStorage.getItem('users')) || [];
         let creators = JSON.parse(localStorage.getItem('creators')) || ["LeoDisstrack-YT"]; // Standard Creator Code
-        let verifiedArtists = JSON.parse(localStorage.getItem('verifiedArtists')) || []; // Speicher für verifizierte Künstler
         let currentUser = null;
         let selectedBeatForModal = null;
 
         const OWNER_NAME = "LeoDisstrack-YT2";
-
-        // Hilfsfunktion zum Rendern des YouTube-Musiknoten-Icons
-        function getYouTubeMusicNoteIconHTML() {
-            return `<svg class="w-4 h-4 text-neutral-400 inline-block ml-1" title="Verifizierter Künstler" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
-        }
-
-        function isArtistVerified(username) {
-            return verifiedArtists.includes(username);
-        }
-
-        function renderFormattedUsername(username) {
-            return isArtistVerified(username) ? `${username} ${getYouTubeMusicNoteIconHTML()}` : username;
-        }
 
         // --- INDEXEDDB SETUP FÜR GROßE AUDIODATEIEN ---
         const dbName = "BeatProductionDB";
@@ -776,7 +700,7 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('app-content').classList.add('flex');
 
-            document.getElementById('profile-name-display').innerHTML = renderFormattedUsername(user.username);
+            document.getElementById('profile-name-display').innerText = user.username;
             document.getElementById('header-avatar').src = user.avatar;
 
             // Admin Buttons anzeigen, falls Admin
@@ -840,53 +764,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // --- MODAL LOGIK FÜR ÜBER UNS & VERIFIZIERTE KÜNSTLER ---
-        function openAboutUsModal() {
-            const modal = document.getElementById('about-us-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
-        }
-
-        function closeAboutUsModal() {
-            const modal = document.getElementById('about-us-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 400);
-        }
-
-        function openVerifiedArtistsModal() {
-            const listModal = document.getElementById('verified-artists-list-modal');
-            listModal.innerHTML = '';
-
-            const verifiedList = users.filter(u => verifiedArtists.includes(u.username) && !u.deactivated);
-
-            if (verifiedList.length === 0) {
-                listModal.innerHTML = `<p class="text-xs text-neutral-500 text-center py-4">Noch keine verifizierten Künstler vorhanden.</p>`;
-            } else {
-                verifiedList.forEach(artist => {
-                    const row = document.createElement('div');
-                    row.className = "flex items-center gap-3 p-3 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
-                    row.innerHTML = `
-                        <img src="${artist.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
-                        <div class="flex-grow">
-                            <p class="font-bold text-white text-sm flex items-center gap-1">${renderFormattedUsername(artist.username)}</p>
-                            <p class="text-xs text-purple-400">Verifizierter Künstler</p>
-                        </div>
-                    `;
-                    listModal.appendChild(row);
-                });
-            }
-
-            const modal = document.getElementById('verified-artists-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); }, 50);
-        }
-
-        function closeVerifiedArtistsModal() {
-            const modal = document.getElementById('verified-artists-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 400);
-        }
-
         // --- EINSTELLUNGEN LOGIK ---
         let tempAvatarData = null;
 
@@ -895,14 +772,6 @@
             document.getElementById('settings-username').value = currentUser.username;
             document.getElementById('settings-avatar-preview').src = currentUser.avatar;
             document.getElementById('settings-avatar-file').value = "";
-
-            // Info-Banner für verifizierte Künstler anzeigen
-            const verifiedInfo = document.getElementById('settings-verified-info');
-            if (isArtistVerified(currentUser.username)) {
-                verifiedInfo.classList.remove('hidden');
-            } else {
-                verifiedInfo.classList.add('hidden');
-            }
 
             const isCreator = creators.includes(currentUser.username);
             const creatorSection = document.getElementById('settings-creator-section');
@@ -983,14 +852,6 @@
             }
 
             const oldName = currentUser.username;
-            
-            // Name im Verifizierte-Künstler Array aktualisieren
-            const verifiedIndex = verifiedArtists.indexOf(oldName);
-            if (verifiedIndex > -1) {
-                verifiedArtists[verifiedIndex] = newName;
-                localStorage.setItem('verifiedArtists', JSON.stringify(verifiedArtists));
-            }
-
             currentUser.username = newName;
             if (tempAvatarData) {
                 currentUser.avatar = tempAvatarData;
@@ -1018,7 +879,7 @@
             localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-            document.getElementById('profile-name-display').innerHTML = renderFormattedUsername(currentUser.username);
+            document.getElementById('profile-name-display').innerText = currentUser.username;
             document.getElementById('header-avatar').src = currentUser.avatar;
             updateCoinsDisplay();
             showSuccessToast("Einstellungen erfolgreich gespeichert!");
@@ -1275,31 +1136,26 @@
             }
         }
 
-        // --- ADMIN PANEL LOGIK (COINS, USERS & VERIFIZIERTE KÜNSTLER) ---
+        // --- ADMIN PANEL LOGIK (COINS & USERS) ---
         function renderUsers() {
             const usersList = document.getElementById('users-list');
             const deactivatedList = document.getElementById('deactivated-users-list');
             const deactivatedContainer = document.getElementById('deactivated-container');
             const creatorsList = document.getElementById('creators-list');
             const creatorContainer = document.getElementById('creator-container');
-            const verifiedAdminList = document.getElementById('verified-artists-admin-list');
-            const verifiedAdminContainer = document.getElementById('verified-artists-admin-container');
 
             usersList.innerHTML = '';
             deactivatedList.innerHTML = '';
             creatorsList.innerHTML = '';
-            verifiedAdminList.innerHTML = '';
 
             let hasDeactivated = false;
             let hasCreators = false;
-            let hasVerified = false;
 
             users.forEach(user => {
                 if (user.username === OWNER_NAME) return;
 
                 const isDeactivated = user.deactivated;
                 const isCreator = creators.includes(user.username);
-                const isVerified = verifiedArtists.includes(user.username);
 
                 const userRow = document.createElement('div');
                 userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
@@ -1308,7 +1164,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
                         <div>
-                            <p class="font-bold text-white flex items-center gap-1">${renderFormattedUsername(user.username)}</p>
+                            <p class="font-bold text-white">${user.username}</p>
                             <p class="text-xs text-neutral-500">Münzen: ${user.coins} | Angemeldet</p>
                         </div>
                     </div>
@@ -1327,11 +1183,6 @@
                             <i data-lucide="star" class="w-3.5 h-3.5"></i> ${isCreator ? 'Creator entziehen' : 'Zu Creator machen'}
                         </button>
 
-                        <!-- NEU: Verifizierter Künstler Button im Admin Panel -->
-                        <button onclick="toggleVerifiedArtistStatus('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isVerified ? 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-transparent' : 'border-neutral-800 hover:border-purple-500/50 hover:text-purple-400'} apple-transition flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-neutral-400 inline-block" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg> ${isVerified ? 'Verifizierung aufheben' : 'Verifizierter Künstler'}
-                        </button>
-
                         <button onclick="toggleUserActivation('${user.username}')" class="p-2 border border-red-950/40 hover:bg-red-950/20 text-red-400 rounded-xl apple-transition" title="Account deaktivieren">
                             <i data-lucide="user-minus" class="w-4 h-4"></i>
                         </button>
@@ -1346,7 +1197,7 @@
                         <div class="flex items-center gap-3 opacity-60">
                             <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
                             <div>
-                                <p class="font-bold text-red-200 line-through flex items-center gap-1">${renderFormattedUsername(user.username)}</p>
+                                <p class="font-bold text-red-200 line-through">${user.username}</p>
                                 <p class="text-xs text-red-400/80">Account gesperrt</p>
                             </div>
                         </div>
@@ -1369,7 +1220,7 @@
                                 <i data-lucide="star" class="text-blue-400 w-5 h-5"></i>
                             </div>
                             <div>
-                                <p class="font-bold text-white flex items-center gap-1">${renderFormattedUsername(user.username)}</p>
+                                <p class="font-bold text-white">${user.username}</p>
                                 <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${user.username.toUpperCase()}" (230 Münzen)</p>
                             </div>
                         </div>
@@ -1379,27 +1230,6 @@
                     `;
                     creatorsList.appendChild(creatorRow);
                 }
-
-                if (isVerified && !isDeactivated) {
-                    hasVerified = true;
-                    const verifiedRow = document.createElement('div');
-                    verifiedRow.className = "flex items-center justify-between p-4 bg-purple-950/15 border border-purple-900/20 rounded-2xl";
-                    verifiedRow.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-neutral-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-                            </div>
-                            <div>
-                                <p class="font-bold text-white flex items-center gap-1">${renderFormattedUsername(user.username)}</p>
-                                <p class="text-xs text-purple-400 font-medium">Verifizierter Künstler</p>
-                            </div>
-                        </div>
-                        <button onclick="toggleVerifiedArtistStatus('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Künstler Status entfernen">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    `;
-                    verifiedAdminList.appendChild(verifiedRow);
-                }
             });
 
             if (hasDeactivated) deactivatedContainer.classList.remove('hidden');
@@ -1408,32 +1238,7 @@
             if (hasCreators) creatorContainer.classList.remove('hidden');
             else creatorContainer.classList.add('hidden');
 
-            if (hasVerified) verifiedAdminContainer.classList.remove('hidden');
-            else verifiedAdminContainer.classList.add('hidden');
-
             lucide.createIcons();
-        }
-
-        function toggleVerifiedArtistStatus(username) {
-            const user = users.find(u => u.username === username);
-            if (!user) return;
-
-            const index = verifiedArtists.indexOf(username);
-            if (index > -1) {
-                verifiedArtists.splice(index, 1);
-                showSuccessToast(`${username} ist kein verifizierter Künstler mehr.`);
-            } else {
-                verifiedArtists.push(username);
-                showSuccessToast(`${username} als verifizierter Künstler eingestellt!`);
-            }
-            localStorage.setItem('verifiedArtists', JSON.stringify(verifiedArtists));
-            
-            // Header-Name direkt aktualisieren wenn betroffener User eingeloggt ist
-            if (currentUser && currentUser.username === username) {
-                document.getElementById('profile-name-display').innerHTML = renderFormattedUsername(username);
-            }
-
-            renderUsers();
         }
 
         function modifyUserCoins(username, add) {
