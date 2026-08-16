@@ -28,21 +28,6 @@
         .animate-hourglass {
             animation: rotateHourglass 2s infinite ease-in-out;
         }
-        
-        /* Neue, flüssige Animation für den Seitenwechsel */
-        @keyframes smoothFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px) scale(0.99);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        .view-section:not(.hidden) {
-            animation: smoothFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden relative">
@@ -162,13 +147,14 @@
                 </div>
 
                 <!-- Navigation -->
-                <nav class="flex items-center gap-2 bg-neutral-900/50 p-1 rounded-xl border border-neutral-800/60 flex-wrap justify-center">
+                <nav class="flex items-center gap-2 bg-neutral-900/50 p-1 rounded-xl border border-neutral-800/60">
                     <button onclick="showView('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-white bg-neutral-800 flex items-center gap-2" id="btn-home">
                         <i data-lucide="home" class="w-4 h-4"></i> Startseite
                     </button>
                     
-                    <button onclick="showView('about')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-about">
-                        <i data-lucide="info" class="w-4 h-4"></i> Über uns
+                    <!-- NEU: Button "Verifizierte Künstler" neben Startseite / Über uns -->
+                    <button onclick="openVerifiedArtistsModal()" class="px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg> Verifizierte Künstler
                     </button>
 
                     <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
@@ -199,7 +185,10 @@
                         
                         <div class="text-right hidden sm:block cursor-pointer" onclick="toggleProfileDropdown()">
                             <p class="text-xs text-neutral-500 flex items-center justify-end gap-1">Angemeldet als <i data-lucide="chevron-down" class="w-3 h-3"></i></p>
-                            <p class="text-sm font-semibold text-white" id="profile-name-display"></p>
+                            <div class="text-sm font-semibold text-white flex items-center justify-end gap-1.5" id="profile-name-display-container">
+                                <span id="profile-name-display"></span>
+                                <!-- Wird dynamisch per JS eingefügt falls verifiziert -->
+                            </div>
                         </div>
                         
                         <!-- Dropdown Menu -->
@@ -241,38 +230,6 @@
                     <p class="text-neutral-300 font-medium text-lg max-w-md px-6">
                         Bisher hat Leo keine Beats hochgeladen die du nutzen darfst.
                     </p>
-                </div>
-            </section>
-
-            <!-- ================= VIEW: ÜBER UNS ================= -->
-            <section id="view-about" class="view-section hidden max-w-5xl mx-auto">
-                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
-                    <h2 class="text-2xl font-bold tracking-wider text-blue-500 uppercase text-center mb-8">ÜBER UNS</h2>
-                    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-                        <!-- Hier wurde das Bild zu LeoDisstrack-YTnewprofi_2.jpg geändert -->
-                        <img id="about-owner-avatar" src="LeoDisstrack-YTnewprofi_2.jpg" class="w-28 h-28 rounded-full border-2 border-neutral-800 object-cover bg-neutral-900 shadow-xl">
-                        <div class="space-y-4 flex-1 text-center md:text-left">
-                            <h3 id="about-owner-name" class="text-xl font-bold text-white tracking-wide">LeoDisstrack-YT2</h3>
-                            <p class="text-neutral-300 leading-relaxed text-sm md:text-base whitespace-pre-line">
-                                Hallo liebe Leute! Danke erstmal fürs besuchen diesem Beats Shop. Hier findet ihr Beats die Beat Coins kosten oder Kostenlos sind. Keine sorge, die Beat Coins kosten kein echtes geld xd. Naja aufjedenfall sind das Lizenzen ob ein Wasserzeichen drinne ist oder keins und ob ihr den Beat auf Spotify und co. hochladen dürfen oder nicht. Auf Soundcloud darfst du sie immer hochladen.
-
-                                Ich bin Leo aka. LeoDisstrack-YT. Ich betreibe einen Musik Kanal wo Disstracks hochgeladen werden. Ich erstelle auch eigene Beats wie bei dem VBC_Official Disstrack. Ich gebe euch auch paar Beats für euren Musik-Projekt.
-                            </p>
-                            
-                            <div class="pt-4 border-t border-neutral-900 text-left">
-                                <h4 class="text-lg font-bold text-blue-500 tracking-wide uppercase mb-2">WIE BEKOMME ICH BEAT COINS?</h4>
-                                <p class="text-neutral-300 leading-relaxed text-sm md:text-base">
-                                    Ich habe ja eben was über Beat Coins gesagt. Ihr bekommt 70 Beat Coins wenn ihr einen Account in diesem Beat Shop erstellt. Was du ja gemacht hast! Du bekommst auch Beat Coins wenn du einen Creator Code einlöst. (Du bekommst 230 Beat Coins.) Viel Spaß mit den Beat coins. ^^
-                                    </p>
-                            
-                            <div class="pt-4 border-t border-neutral-900 text-left">
-                                <h4 class="text-lg font-bold text-blue-500 tracking-wide uppercase mb-2">INFOS</h4>
-                                <p class="text-neutral-300 leading-relaxed text-sm md:text-base">
-                                    Diese Website hat noch Bugs. Bitte erwarte nicht dass es keine Bugs gibt. Diese Website ist neu und ich versuche alles so schnell wie möglich zu fixen.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
@@ -398,6 +355,11 @@
                     </h2>
 
                     <form onsubmit="handleSaveSettings(event)" class="space-y-6">
+                        <!-- NEU: Offizieller Künstler Info-Text wenn verifiziert -->
+                        <div id="settings-verified-info" class="hidden bg-neutral-900 border border-neutral-800 p-4 rounded-xl text-center text-sm text-neutral-300">
+                            Du bist nun offizieler Künstler und wirst angezeigt.
+                        </div>
+
                         <!-- Profil ändern (Avatar Upload) -->
                         <div>
                             <label class="block text-sm font-medium text-neutral-300 mb-2">Profilbild ändern</label>
@@ -462,7 +424,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <!-- Links: Cover -->
-                <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative group cursor-pointer" onclick="openBeatModal(selectedBeatForModal ? selectedBeatForModal.id : '')">
+                <div class="aspect-square w-full rounded-2xl overflow-hidden bg-neutral-900 border border-neutral-800 relative">
                     <img id="modal-cover" src="" class="w-full h-full object-cover">
                 </div>
 
@@ -512,112 +474,134 @@
         </div>
     </div>
 
+    <!-- ================= NEU: VERIFIZIERTE KÜNSTLER MODAL ================= -->
+    <div id="verified-artists-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
+        <div class="w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
+            <button onclick="closeVerifiedArtistsModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Verifizierte Künstler</h3>
+                        <p class="text-xs text-neutral-400">Offizielle verifizierte Künstler auf der Plattform</p>
+                    </div>
+                </div>
+
+                <div id="verified-artists-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= JAVASCRIPT LOGIK ================= -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDLMy8vmFCkCckhU0A8VaLbWkZxyLb625Y",
-            authDomain: "leodisstrack-beats.firebaseapp.com",
-            databaseURL: "https://leodisstrack-beats-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "leodisstrack-beats",
-            storageBucket: "leodisstrack-beats.firebasestorage.app",
-            messagingSenderId: "737493878618",
-            appId: "1:737493878618:web:2ed5966846393061ea5563",
-            measurementId: "G-MQYZEYHPYJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
+    <script>
         let beats = [];
-        let users = [];
-        let creators = {};
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let creators = JSON.parse(localStorage.getItem('creators')) || ["LeoDisstrack-YT"]; // Standard Creator Code
+        let verifiedArtists = JSON.parse(localStorage.getItem('verifiedArtists')) || []; // NEU: Array für verifizierte Künstler
         let currentUser = null;
         let selectedBeatForModal = null;
-        let isTrueOwner = false; // Sichere Erfassung der Adminrechte
 
         const OWNER_NAME = "LeoDisstrack-YT2";
 
-        function listenToFirebaseData() {
-            onValue(ref(db, 'beats'), (snapshot) => {
-                const data = snapshot.val();
-                beats = data ? Object.values(data) : [];
-                renderBeats();
-                if (selectedBeatForModal) {
-                    openBeatModal(selectedBeatForModal.id);
-                }
-            });
+        // SVG für YouTube Verifizierter Künstlerkanal Icon (gleiches Design)
+        const ytVerifiedIconSVG = `<svg class="w-4 h-4 inline-block text-neutral-400 ml-1 shrink-0" viewBox="0 0 24 24" fill="currentColor" title="Verifizierter Künstlerkanal"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>`;
 
-            onValue(ref(db, 'users'), (snapshot) => {
-                const data = snapshot.val();
-                users = data ? Object.values(data) : [];
-                
-                // Live-Update des "Über uns" Frames durch Auslesen der Admin-Daten
-                const adminAccount = users.find(u => u.isTrueAdmin === true || u.username === OWNER_NAME);
-                if (adminAccount) {
-                    const aboutName = document.getElementById('about-owner-name');
-                    if (aboutName) aboutName.innerText = adminAccount.username;
-                }
+        // SVG für Musiknote (GLEICH DESIGNED wie bei YouTube / identisch sauberer Look)
+        const musicNoteIconSVG = `<svg class="w-4 h-4 inline-block text-blue-400 ml-1 shrink-0" viewBox="0 0 24 24" fill="currentColor" title="Offizieller Künstler"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
 
-                if (currentUser) {
-                    const freshUser = users.find(u => u.username === currentUser.username);
-                    if (freshUser) {
-                        if (freshUser.deactivated) {
-                            logout();
-                        } else {
-                            currentUser = freshUser;
-                            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                            document.getElementById('profile-name-display').innerText = currentUser.username;
-                            document.getElementById('header-avatar').src = currentUser.avatar;
-                            updateCoinsDisplay();
-                        }
+        // --- INDEXEDDB SETUP FÜR GROßE AUDIODATEIEN ---
+        const dbName = "BeatProductionDB";
+        const storeName = "beats";
+        let db;
+
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = function(e) {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(storeName)) {
+                        database.createObjectStore(storeName, { keyPath: "id" });
                     }
-                }
-                renderUsers();
-            });
-
-            onValue(ref(db, 'creators'), (snapshot) => {
-                const data = snapshot.val();
-                creators = data ? data : {};
-                renderUsers();
+                };
+                request.onsuccess = function(e) {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = function(e) {
+                    reject(e);
+                };
             });
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            listenToFirebaseData();
+        function saveBeatToDB(beat) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.put(beat);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e);
+            });
+        }
 
-            if (localStorage.getItem('is_true_owner') === 'true') {
-                isTrueOwner = true;
+        function loadBeatsFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function deleteBeatFromDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // Prüft automatischen Login und initialisiert die DB
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initIndexedDB();
+                beats = await loadBeatsFromDB();
+            } catch (err) {
+                console.error("IndexedDB konnte nicht geladen werden:", err);
             }
 
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 const parsed = JSON.parse(savedUser);
-                get(child(ref(db), `users/${parsed.username}`)).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const dbUser = snapshot.val();
-                        if (dbUser.deactivated) {
-                            localStorage.removeItem('currentUser');
-                        } else {
-                            if(dbUser.isTrueAdmin) isTrueOwner = true;
-                            loginUser(dbUser);
-                        }
-                    } else if (parsed.username === OWNER_NAME || parsed.isTrueAdmin) {
-                        loginUser(parsed);
-                    } else {
+                const dbUser = users.find(u => u.username === parsed.username);
+                if (dbUser) {
+                    if (dbUser.deactivated) {
                         localStorage.removeItem('currentUser');
+                    } else {
+                        loginUser(dbUser);
                     }
-                }).catch((error) => console.error(error));
+                } else if (parsed.username === OWNER_NAME) {
+                    loginUser(parsed);
+                } else {
+                    localStorage.removeItem('currentUser');
+                }
             }
-
             lucide.createIcons();
             
+            // Klick-Event um Dropdown zu schließen wenn man außerhalb klickt
             document.addEventListener('click', function(event) {
                 const dropdown = document.getElementById('profile-dropdown');
                 const avatar = document.getElementById('header-avatar');
-                const textDisplay = document.getElementById('profile-name-display');
+                const textDisplay = document.getElementById('profile-name-display-container');
                 if (dropdown && !dropdown.classList.contains('hidden')) {
                     if (!avatar.contains(event.target) && !textDisplay.contains(event.target)) {
                         toggleProfileDropdown(false);
@@ -626,7 +610,8 @@
             });
         });
 
-        window.toggleCostField = function(show) {
+        // Toggle Cost Frame beim Hochladen
+        function toggleCostField(show) {
             const costFrame = document.getElementById('cost-frame');
             if (show) {
                 costFrame.classList.remove('hidden');
@@ -635,9 +620,10 @@
                 costFrame.classList.add('hidden');
                 document.getElementById('beat-cost').removeAttribute('required');
             }
-        };
+        }
 
-        window.toggleProfileDropdown = function(forceState) {
+        // --- PROFILE DROPDOWN ---
+        function toggleProfileDropdown(forceState) {
             const dropdown = document.getElementById('profile-dropdown');
             const show = forceState !== undefined ? forceState : dropdown.classList.contains('hidden');
 
@@ -652,9 +638,10 @@
                     dropdown.classList.add('hidden');
                 }, 400);
             }
-        };
+        }
 
-        window.toggleAuthMode = function(showLogin) {
+        // --- AUTH LOGIK ---
+        function toggleAuthMode(showLogin) {
             const registerForm = document.getElementById('auth-register');
             const loginForm = document.getElementById('auth-login');
             const errorText = document.getElementById('auth-error');
@@ -667,9 +654,9 @@
                 registerForm.classList.remove('hidden');
                 loginForm.classList.add('hidden');
             }
-        };
+        }
 
-        window.handleRegister = function(event) {
+        function handleRegister(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('reg-username').value.trim();
             const passwordInput = document.getElementById('reg-password').value;
@@ -679,7 +666,6 @@
                     showAuthError("Du bist nicht der owner dieser website.");
                     return;
                 } else {
-                    isTrueOwner = true;
                     localStorage.setItem('is_true_owner', 'true');
                     localStorage.setItem('owner_registered', 'true');
                 }
@@ -703,20 +689,18 @@
             const newUser = {
                 username: usernameInput,
                 password: passwordInput,
-                coins: usernameInput === OWNER_NAME ? 99999999 : 0, 
+                coins: usernameInput === OWNER_NAME ? Infinity : 0,
                 avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
                 deactivated: false,
-                lastCreatorCodeChange: null,
-                customCreatorCode: "",
-                isTrueAdmin: usernameInput === OWNER_NAME ? true : false
+                lastCreatorCodeChange: null
             };
 
-            set(ref(db, 'users/' + usernameInput), newUser).then(() => {
-                loginUser(newUser);
-            });
-        };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            loginUser(newUser);
+        }
 
-        window.handleLogin = function(event) {
+        function handleLogin(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('login-username').value.trim();
             const passwordInput = document.getElementById('login-password').value;
@@ -744,13 +728,8 @@
                 return;
             }
 
-            if(foundUser.isTrueAdmin) {
-                isTrueOwner = true;
-                localStorage.setItem('is_true_owner', 'true');
-            }
-
             loginUser(foundUser);
-        };
+        }
 
         function showAuthError(message) {
             const errorText = document.getElementById('auth-error');
@@ -766,10 +745,18 @@
             document.getElementById('app-content').classList.remove('hidden');
             document.getElementById('app-content').classList.add('flex');
 
-            document.getElementById('profile-name-display').innerText = user.username;
+            const nameDisplay = document.getElementById('profile-name-display');
+            nameDisplay.innerText = user.username;
+            
+            // Musiknote hinzufügen falls verifizierter Künstler
+            if (verifiedArtists.includes(user.username)) {
+                nameDisplay.innerHTML = user.username + musicNoteIconSVG;
+            }
+
             document.getElementById('header-avatar').src = user.avatar;
 
-            if (isTrueOwner || user.isTrueAdmin) {
+            // Admin Buttons anzeigen, falls Admin
+            if (user.username === OWNER_NAME) {
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             } else {
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
@@ -781,11 +768,9 @@
             showView('home');
         }
 
-        window.logout = function() {
+        function logout() {
             currentUser = null;
-            isTrueOwner = false;
             localStorage.removeItem('currentUser');
-            localStorage.removeItem('is_true_owner');
             document.getElementById('app-content').classList.remove('flex');
             document.getElementById('app-content').classList.add('hidden');
             document.getElementById('auth-gate').classList.remove('hidden');
@@ -794,16 +779,17 @@
             document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             toggleAuthMode(true);
-        };
+        }
 
         function updateCoinsDisplay() {
             const globalCoinsSpan = document.getElementById('global-coins');
             if (currentUser) {
-                globalCoinsSpan.innerText = (isTrueOwner || currentUser.isTrueAdmin) ? "∞" : currentUser.coins;
+                globalCoinsSpan.innerText = currentUser.username === OWNER_NAME ? "∞" : currentUser.coins;
             }
         }
 
-        window.showView = function(viewName) {
+        // --- NAVIGATION LOGIK ---
+        function showView(viewName) {
             document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('text-white', 'bg-neutral-800');
@@ -814,10 +800,6 @@
                 document.getElementById('view-home').classList.remove('hidden');
                 document.getElementById('btn-home').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-home').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
-            } else if (viewName === 'about') {
-                document.getElementById('view-about').classList.remove('hidden');
-                document.getElementById('btn-about').classList.add('text-white', 'bg-neutral-800');
-                document.getElementById('btn-about').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
             } else if (viewName === 'upload') {
                 document.getElementById('view-upload').classList.remove('hidden');
                 document.getElementById('btn-upload').classList.add('text-white', 'bg-neutral-800');
@@ -832,8 +814,9 @@
                 prepareSettingsView();
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+        }
 
+        // --- EINSTELLUNGEN LOGIK ---
         let tempAvatarData = null;
 
         function prepareSettingsView() {
@@ -842,15 +825,23 @@
             document.getElementById('settings-avatar-preview').src = currentUser.avatar;
             document.getElementById('settings-avatar-file').value = "";
 
-            const isCreator = creators[currentUser.username] !== undefined;
+            const verifiedInfoBox = document.getElementById('settings-verified-info');
+            if (verifiedArtists.includes(currentUser.username)) {
+                verifiedInfoBox.classList.remove('hidden');
+            } else {
+                verifiedInfoBox.classList.add('hidden');
+            }
+
+            const isCreator = creators.includes(currentUser.username);
             const creatorSection = document.getElementById('settings-creator-section');
             const codeInput = document.getElementById('settings-creator-code');
             const cooldownInfo = document.getElementById('creator-cooldown-info');
 
             if (isCreator) {
                 creatorSection.classList.remove('hidden');
-                codeInput.value = creators[currentUser.username] || currentUser.username;
+                codeInput.value = currentUser.username; // Standardmäßig sein Name
                 
+                // Prüfe Cooldown
                 if (currentUser.lastCreatorCodeChange) {
                     const diffTime = Math.abs(new Date() - new Date(currentUser.lastCreatorCodeChange));
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -873,7 +864,7 @@
             }
         }
 
-        window.previewSettingsAvatar = function(input) {
+        function previewSettingsAvatar(input) {
             const preview = document.getElementById('settings-avatar-preview');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -883,12 +874,12 @@
                 }
                 reader.readAsDataURL(input.files[0]);
             }
-        };
+        }
 
-        window.handleSaveSettings = async function(event) {
+        async function handleSaveSettings(event) {
             event.preventDefault();
             const newName = document.getElementById('settings-username').value.trim();
-            const isCreator = creators[currentUser.username] !== undefined;
+            const isCreator = creators.includes(currentUser.username);
             const codeInput = document.getElementById('settings-creator-code');
             const newCode = codeInput.value.trim();
 
@@ -902,61 +893,81 @@
                 }
             }
 
-            const oldName = currentUser.username;
-
             if (isCreator && !codeInput.hasAttribute('disabled')) {
                 const regex = /^[A-Za-z0-9._]+$/;
                 if (!regex.test(newCode)) {
                     showErrorToast("Der Creator Code darf nur Buchstaben, Zahlen, Punkte (.) und Unterstriche (_) enthalten.");
                     return;
                 }
-                currentUser.customCreatorCode = newCode;
-                await set(ref(db, `creators/${oldName}`), newCode);
-                currentUser.lastCreatorCodeChange = new Date().toISOString();
+
+                const creatorIndex = creators.indexOf(currentUser.username);
+                if (creatorIndex > -1) {
+                    creators[creatorIndex] = newCode;
+                } else {
+                    creators.push(newCode);
+                }
+                currentUser.lastCreatorCodeChange = new Date();
+                localStorage.setItem('creators', JSON.stringify(creators));
             }
 
+            const oldName = currentUser.username;
             currentUser.username = newName;
             if (tempAvatarData) {
                 currentUser.avatar = tempAvatarData;
             }
 
-            if (oldName !== newName && isCreator) {
-                const existingCode = currentUser.customCreatorCode || creators[oldName] || oldName;
-                await remove(ref(db, `creators/${oldName}`));
-                await set(ref(db, `creators/${newName}`), existingCode);
+            // Falls Name in Verifizierte Künstler war, aktualisieren
+            const verifiedIdx = verifiedArtists.indexOf(oldName);
+            if (verifiedIdx > -1) {
+                verifiedArtists[verifiedIdx] = newName;
+                localStorage.setItem('verifiedArtists', JSON.stringify(verifiedArtists));
             }
 
-            await remove(ref(db, `users/${oldName}`));
-            await set(ref(db, `users/${newName}`), currentUser);
+            const dbUserIndex = users.findIndex(u => u.username === oldName);
+            if (dbUserIndex > -1) {
+                users[dbUserIndex] = {
+                    ...users[dbUserIndex],
+                    username: currentUser.username,
+                    avatar: currentUser.avatar,
+                    lastCreatorCodeChange: currentUser.lastCreatorCodeChange
+                };
+            }
 
-            beats.forEach(async (beat) => {
-                if(beat.purchasedBy) {
-                    const buyIndex = beat.purchasedBy.indexOf(oldName);
-                    if (buyIndex > -1) {
-                        beat.purchasedBy[buyIndex] = newName;
-                        await set(ref(db, `beats/${beat.id}`), beat);
-                    }
+            // In IndexedDB gekaufte Beats updaten
+            beats.forEach(beat => {
+                const buyIndex = beat.purchasedBy.indexOf(oldName);
+                if (buyIndex > -1) {
+                    beat.purchasedBy[buyIndex] = newName;
+                    saveBeatToDB(beat);
                 }
             });
 
+            localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            document.getElementById('profile-name-display').innerText = currentUser.username;
+
+            const nameDisplay = document.getElementById('profile-name-display');
+            nameDisplay.innerText = currentUser.username;
+            if (verifiedArtists.includes(currentUser.username)) {
+                nameDisplay.innerHTML = currentUser.username + musicNoteIconSVG;
+            }
+
             document.getElementById('header-avatar').src = currentUser.avatar;
             updateCoinsDisplay();
             showSuccessToast("Einstellungen erfolgreich gespeichert!");
             showView('home');
-        };
+        }
 
-        window.updateFileName = function(input, labelId) {
+        // --- HOCHLADEN LOGIK ---
+        function updateFileName(input, labelId) {
             const label = document.getElementById(labelId);
             if (input.files && input.files.length > 0) {
                 label.innerText = input.files[0].name;
             } else {
                 label.innerText = "Klicke hier, um eine Audiodatei auszuwählen";
             }
-        };
+        }
 
-        window.previewCover = function(input) {
+        function previewCover(input) {
             const preview = document.getElementById('cover-preview');
             const placeholder = document.getElementById('cover-placeholder');
             if (input.files && input.files[0]) {
@@ -968,10 +979,11 @@
                 }
                 reader.readAsDataURL(input.files[0]);
             }
-        };
+        }
 
-        window.handleUpload = function(event) {
+        function handleUpload(event) {
             event.preventDefault();
+            
             showToast("Dein Beat wird hochgeladen..", "hourglass");
 
             const title = document.getElementById('beat-title').value.trim();
@@ -995,18 +1007,20 @@
 
             audioReader.onload = function(eAudio) {
                 coverReader.onload = async function(eCover) {
-                    const beatId = 'beat-' + Date.now();
                     const newBeat = {
-                        id: beatId,
+                        id: 'beat-' + Date.now(),
                         title: title,
                         audioData: eAudio.target.result,
                         audioName: audioFile.name,
                         coverData: eCover.target.result,
                         cost: finalCost,
-                        purchasedBy: ["placeholder_init"]
+                        purchasedBy: []
                     };
 
-                    set(ref(db, 'beats/' + beatId), newBeat).then(() => {
+                    try {
+                        await saveBeatToDB(newBeat);
+                        beats.push(newBeat);
+                        
                         hideToast();
                         showSuccessToast("Beat erfolgreich veröffentlicht!");
                         document.getElementById('beat-title').value = '';
@@ -1015,23 +1029,24 @@
                         document.getElementById('audio-label').innerText = "Klicke hier, um eine Audiodatei auszuwählen";
                         document.getElementById('cover-preview').classList.add('hidden');
                         document.getElementById('cover-placeholder').classList.remove('hidden');
+                        renderBeats();
                         showView('home');
-                    }).catch((err) => {
+                    } catch (err) {
                         hideToast();
-                        showErrorToast("Fehler beim Speichern in Firebase.");
+                        showErrorToast("Fehler beim Speichern in IndexedDB.");
                         console.error(err);
-                    });
+                    }
                 }
                 coverReader.readAsDataURL(coverImage);
             }
             audioReader.readAsDataURL(audioFile);
-        };
+        }
 
+        // --- BEAT RENDERING & SUCHE ---
         function renderBeats() {
             const grid = document.getElementById('beat-grid');
             const placeholder = document.getElementById('no-beats-placeholder');
-            const searchInput = document.getElementById('search-input');
-            const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
 
             let filtered = beats.filter(b => b.title.toLowerCase().includes(searchVal));
 
@@ -1044,8 +1059,7 @@
                 
                 grid.innerHTML = '';
                 filtered.forEach(beat => {
-                    const hasPurchasedList = beat.purchasedBy || [];
-                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
+                    const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
                     
                     const card = document.createElement('div');
                     card.className = "bg-neutral-950 border border-neutral-900 rounded-3xl p-5 shadow-xl hover:border-neutral-800/80 apple-transition flex flex-col justify-between";
@@ -1070,7 +1084,7 @@
                                 ${beat.cost === 0 ? '<span class="text-blue-400 font-bold uppercase tracking-wider">Kostenlos</span>' : `🪙 ${beat.cost}`}
                             </span>
                             <button onclick="openBeatModal('${beat.id}')" class="px-5 py-2.5 text-xs font-bold rounded-xl ${isPurchased ? 'bg-neutral-900 text-neutral-300 hover:text-white border border-neutral-800' : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/10'} apple-transition">
-                                ${isPurchased ? 'ANHÖREN / LADEN' : 'VORSCHAU / KAUFEN'}
+                                ${isPurchased ? 'ANHÖREN / LADEN' : 'ERWERBEN'}
                             </button>
                         </div>
                     `;
@@ -1080,11 +1094,12 @@
             }
         }
 
-        window.searchBeats = function() {
+        function searchBeats() {
             renderBeats();
-        };
+        }
 
-        window.openBeatModal = function(beatId) {
+        // --- DETAILS / KAUFEN MODAL ---
+        function openBeatModal(beatId) {
             const beat = beats.find(b => b.id === beatId);
             if (!beat) return;
             selectedBeatForModal = beat;
@@ -1099,18 +1114,12 @@
             badgeContainer.innerHTML = '';
             buttonsContainer.innerHTML = '';
 
-            const hasPurchasedList = beat.purchasedBy || [];
-            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
+            const isPurchased = beat.purchasedBy.includes(currentUser.username) || beat.cost === 0 || currentUser.username === OWNER_NAME;
 
             if (beat.cost === 0) {
                 badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="gift" class="w-3.5 h-3.5"></i> KOSTENLOSE LIZENZ</span>`;
             } else {
-                badgeContainer.innerHTML = `
-                    <div class="flex flex-col gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20 justify-center"><i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> ${beat.cost} BEAT COINS</span>
-                        ${!isPurchased ? '<span class="text-[11px] text-amber-400 text-center font-medium">⚠️ Vorschau-Modus aktiv (stoppt nach 50 Sek.)</span>' : ''}
-                    </div>
-                `;
+                badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20"><i data-lucide="circle-dollar-sign" class="w-3.5 h-3.5"></i> ${beat.cost} BEAT COINS</span>`;
             }
 
             if (isPurchased) {
@@ -1123,32 +1132,14 @@
                     </a>
                 `;
             } else {
-                // Audio Vorschau mit 50 Sekunden Limitierung
                 buttonsContainer.innerHTML = `
-                    <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
-                        <audio id="preview-audio-player" controls class="w-full" src="${beat.audioData}"></audio>
-                    </div>
                     <button onclick="purchaseBeat('${beat.id}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 apple-transition text-sm shadow-lg shadow-green-600/10">
                         <i data-lucide="shopping-cart" class="w-4 h-4"></i> Für ${beat.cost} Coins freischalten
                     </button>
                 `;
-
-                // Timeout Listener für 50-Sekunden-Stopp hinzufügen
-                setTimeout(() => {
-                    const pPlayer = document.getElementById('preview-audio-player');
-                    if (pPlayer) {
-                        pPlayer.addEventListener('timeupdate', () => {
-                            if (pPlayer.currentTime >= 50) {
-                                pPlayer.pause();
-                                pPlayer.currentTime = 0;
-                                showErrorToast("Die 50 Sekunden Vorschau ist vorbei. Kaufe den Beat für die volle Länge!");
-                            }
-                        });
-                    }
-                }, 100);
             }
 
-            if (isTrueOwner || currentUser.isTrueAdmin) {
+            if (currentUser.username === OWNER_NAME) {
                 buttonsContainer.innerHTML += `
                     <button onclick="deleteBeat('${beat.id}')" class="w-full bg-red-950/40 hover:bg-red-950/60 border border-red-900/30 text-red-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 apple-transition text-xs">
                         <i data-lucide="trash-2" class="w-4 h-4"></i> Beat unwiderruflich löschen
@@ -1163,64 +1154,66 @@
             }, 50);
 
             lucide.createIcons();
-        };
+        }
 
-        window.closeBeatModal = function() {
+        function closeBeatModal() {
             const modal = document.getElementById('beat-modal');
-            const pPlayer = document.getElementById('preview-audio-player');
-            if(pPlayer) pPlayer.pause();
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 selectedBeatForModal = null;
             }, 400);
-        };
+        }
 
-        window.purchaseBeat = async function(beatId) {
+        async function purchaseBeat(beatId) {
             const beat = beats.find(b => b.id === beatId);
             if (!beat) return;
 
-            if (currentUser.coins < beat.cost && !isTrueOwner && !currentUser.isTrueAdmin) {
+            if (currentUser.coins < beat.cost && currentUser.username !== OWNER_NAME) {
                 closeBeatModal();
                 showErrorToast("Du hast leider nicht genug Beat coins um dir diesen Beat zu kaufen!:(");
                 return;
             }
 
-            if (!isTrueOwner && !currentUser.isTrueAdmin) {
+            if (currentUser.username !== OWNER_NAME) {
                 currentUser.coins -= beat.cost;
-                await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
+                const dbUser = users.find(u => u.username === currentUser.username);
+                if (dbUser) dbUser.coins = currentUser.coins;
+                localStorage.setItem('users', JSON.stringify(users));
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
 
-            if (!beat.purchasedBy) beat.purchasedBy = [];
             beat.purchasedBy.push(currentUser.username);
-            
-            await set(ref(db, `beats/${beat.id}`), beat);
+            await saveBeatToDB(beat);
 
             updateCoinsDisplay();
             closeBeatModal();
             showSuccessToast("Erfolgreich freigeschaltet!");
-        };
+            renderBeats();
+        }
 
-        window.deleteBeat = async function(beatId) {
+        async function deleteBeat(beatId) {
             if (confirm("Möchtest du diesen Beat wirklich komplett löschen?")) {
-                remove(ref(db, `beats/${beatId}`)).then(() => {
+                try {
+                    await deleteBeatFromDB(beatId);
+                    beats = beats.filter(b => b.id !== beatId);
                     closeBeatModal();
                     showSuccessToast("Beat gelöscht.");
-                }).catch(() => {
+                    renderBeats();
+                } catch (err) {
                     showErrorToast("Fehler beim Löschen des Beats.");
-                });
+                    console.error(err);
+                }
             }
-        };
+        }
 
+        // --- ADMIN PANEL LOGIK (COINS & USERS) ---
         function renderUsers() {
             const usersList = document.getElementById('users-list');
             const deactivatedList = document.getElementById('deactivated-users-list');
             const deactivatedContainer = document.getElementById('deactivated-container');
             const creatorsList = document.getElementById('creators-list');
             const creatorContainer = document.getElementById('creator-container');
-
-            if (!usersList) return;
 
             usersList.innerHTML = '';
             deactivatedList.innerHTML = '';
@@ -1230,11 +1223,11 @@
             let hasCreators = false;
 
             users.forEach(user => {
-                if (user.isTrueAdmin || user.username === OWNER_NAME) return;
+                if (user.username === OWNER_NAME) return;
 
                 const isDeactivated = user.deactivated;
-                const isCreator = creators[user.username] !== undefined;
-                const activeCreatorCode = isCreator ? (creators[user.username] || user.username) : user.username;
+                const isCreator = creators.includes(user.username);
+                const isVerifiedArtist = verifiedArtists.includes(user.username);
 
                 const userRow = document.createElement('div');
                 userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
@@ -1243,7 +1236,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
                         <div>
-                            <p class="font-bold text-white">${user.username}</p>
+                            <p class="font-bold text-white flex items-center">${user.username} ${isVerifiedArtist ? musicNoteIconSVG : ''}</p>
                             <p class="text-xs text-neutral-500">Münzen: ${user.coins} | Angemeldet</p>
                         </div>
                     </div>
@@ -1258,6 +1251,12 @@
                             </button>
                         </div>
                         
+                        <!-- NEU: Admin Button "Verifizierter Künstler" mit YouTube-Verifizierungs-Icon -->
+                        <button onclick="toggleVerifiedArtistStatus('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isVerifiedArtist ? 'border-neutral-700 bg-neutral-800 text-white' : 'border-neutral-800 hover:border-neutral-600 text-neutral-300'} apple-transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg> 
+                            ${isVerifiedArtist ? 'Verifizierter Künstler (Aktiv)' : 'Verifizierter Künstler'}
+                        </button>
+
                         <button onclick="toggleCreatorStatus('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isCreator ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500 hover:bg-transparent' : 'border-neutral-800 hover:border-yellow-500/50 hover:text-yellow-500'} apple-transition flex items-center gap-1.5">
                             <i data-lucide="star" class="w-3.5 h-3.5"></i> ${isCreator ? 'Creator entziehen' : 'Zu Creator machen'}
                         </button>
@@ -1300,7 +1299,7 @@
                             </div>
                             <div>
                                 <p class="font-bold text-white">${user.username}</p>
-                                <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${activeCreatorCode.toUpperCase()}" (230 Münzen)</p>
+                                <p class="text-xs text-blue-400 font-medium">Gutscheincode: "${user.username.toUpperCase()}" (230 Münzen)</p>
                             </div>
                         </div>
                         <button onclick="toggleCreatorStatus('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Creator Status entfernen">
@@ -1320,7 +1319,69 @@
             lucide.createIcons();
         }
 
-        window.modifyUserCoins = async function(username, add) {
+        // --- NEU: Verifizierte Künstler Logik ---
+        function toggleVerifiedArtistStatus(username) {
+            const index = verifiedArtists.indexOf(username);
+            if (index > -1) {
+                verifiedArtists.splice(index, 1);
+                showSuccessToast(`${username} ist kein verifizierter Künstler mehr.`);
+            } else {
+                verifiedArtists.push(username);
+                showSuccessToast(`${username} wurde als verifizierter Künstler eingetragen!`);
+            }
+            localStorage.setItem('verifiedArtists', JSON.stringify(verifiedArtists));
+            renderUsers();
+
+            // Falls der angemeldete User gerade betroffen ist, Header/UI aktualisieren
+            if (currentUser && currentUser.username === username) {
+                const nameDisplay = document.getElementById('profile-name-display');
+                if (verifiedArtists.includes(currentUser.username)) {
+                    nameDisplay.innerHTML = currentUser.username + musicNoteIconSVG;
+                } else {
+                    nameDisplay.innerText = currentUser.username;
+                }
+            }
+        }
+
+        function openVerifiedArtistsModal() {
+            const listContainer = document.getElementById('verified-artists-list');
+            listContainer.innerHTML = '';
+
+            if (verifiedArtists.length === 0) {
+                listContainer.innerHTML = `<p class="text-neutral-500 text-sm text-center py-6">Derzeit sind keine verifizierten Künstler vorhanden.</p>`;
+            } else {
+                verifiedArtists.forEach(artistName => {
+                    const userObj = users.find(u => u.username === artistName);
+                    const avatar = userObj ? userObj.avatar : `https://api.dicebear.com/7.x/bottts/svg?seed=${artistName}`;
+
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-3 bg-neutral-900 border border-neutral-800 rounded-2xl";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${avatar}" class="w-9 h-9 rounded-xl bg-neutral-950 border border-neutral-800 object-cover">
+                            <span class="font-bold text-white flex items-center">${artistName} ${musicNoteIconSVG}</span>
+                        </div>
+                    `;
+                    listContainer.appendChild(row);
+                });
+            }
+
+            const modal = document.getElementById('verified-artists-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 50);
+        }
+
+        function closeVerifiedArtistsModal() {
+            const modal = document.getElementById('verified-artists-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 400);
+        }
+
+        function modifyUserCoins(username, add) {
             const input = document.getElementById(`coins-add-${username}`);
             const amount = parseInt(input.value);
             if (isNaN(amount) || amount <= 0) return;
@@ -1334,70 +1395,75 @@
                     user.coins = Math.max(0, user.coins - amount);
                     showSuccessToast(`${amount} Münzen von ${username} abgezogen.`);
                 }
-                await set(ref(db, `users/${username}/coins`), user.coins);
-                input.value = '';
-            }
-        };
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                if (currentUser && currentUser.username === username) {
+                    currentUser.coins = user.coins;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateCoinsDisplay();
+                }
 
-        window.toggleUserActivation = async function(username) {
+                input.value = '';
+                renderUsers();
+            }
+        }
+
+        function toggleUserActivation(username) {
             const user = users.find(u => u.username === username);
             if (user) {
                 user.deactivated = !user.deactivated;
-                await set(ref(db, `users/${username}/deactivated`), user.deactivated);
+                localStorage.setItem('users', JSON.stringify(users));
                 showSuccessToast(user.deactivated ? `Account ${username} deaktiviert.` : `Account ${username} reaktiviert.`);
+                renderUsers();
             }
-        };
+        }
 
-        window.toggleCreatorStatus = async function(username) {
+        function toggleCreatorStatus(username) {
             const user = users.find(u => u.username === username);
-            const isCurrentlyCreator = creators[username] !== undefined;
+            if (!user) return;
 
-            if (isCurrentlyCreator) {
-                await remove(ref(db, `creators/${username}`));
-                if (user) {
-                    user.customCreatorCode = "";
-                    await set(ref(db, `users/${username}/customCreatorCode`), "");
-                }
+            const index = creators.indexOf(username);
+            if (index > -1) {
+                creators.splice(index, 1);
                 showSuccessToast(`${username} ist kein Creator mehr.`);
             } else {
-                const initialCode = (user && user.customCreatorCode) ? user.customCreatorCode : username;
-                await set(ref(db, `creators/${username}`), initialCode);
-                if (user) {
-                    user.customCreatorCode = initialCode;
-                    await set(ref(db, `users/${username}/customCreatorCode`), initialCode);
-                }
+                creators.push(username);
                 showSuccessToast(`${username} als Creator eingetragen!`);
             }
-        };
+            localStorage.setItem('creators', JSON.stringify(creators));
+            renderUsers();
+        }
 
-        window.openCreatorModal = function() {
+        // --- CREATOR CODES ---
+        function openCreatorModal() {
             const modal = document.getElementById('creator-modal');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
             }, 50);
-        };
+        }
 
-        window.closeCreatorModal = function() {
+        function closeCreatorModal() {
             const modal = document.getElementById('creator-modal');
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.getElementById('creator-code-input').value = '';
             }, 400);
-        };
+        }
 
-        window.submitCreatorCode = async function() {
-            const codeInput = document.getElementById('creator-code-input').value.trim().toLowerCase();
+        function submitCreatorCode() {
+            const codeInput = document.getElementById('creator-code-input').value.trim();
             if (!codeInput) return;
 
-            const validCodes = Object.values(creators).map(c => c.toLowerCase());
-            const isValid = validCodes.includes(codeInput);
+            const match = creators.find(c => c.toLowerCase() === codeInput.toLowerCase());
 
-            if (isValid) {
-                if (!isTrueOwner && !currentUser.isTrueAdmin) {
+            if (match) {
+                if (currentUser.username !== OWNER_NAME) {
                     currentUser.coins += 230;
-                    await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
+                    const dbUser = users.find(u => u.username === currentUser.username);
+                    if (dbUser) dbUser.coins = currentUser.coins;
+                    localStorage.setItem('users', JSON.stringify(users));
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 }
                 updateCoinsDisplay();
@@ -1407,21 +1473,28 @@
                 closeCreatorModal();
                 showErrorToast("Code ist ungültig oder existiert nicht.");
             }
-        };
+        }
 
+        // --- TOAST SYSTEM ---
         function showToast(text, iconName) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').innerText = text;
+            
             const icon = document.getElementById('toast-icon');
             icon.setAttribute('data-lucide', iconName);
-            if (iconName === 'hourglass') icon.classList.add('animate-hourglass');
-            else icon.classList.remove('animate-hourglass');
+            if (iconName === 'hourglass') {
+                icon.classList.add('animate-hourglass');
+            } else {
+                icon.classList.remove('animate-hourglass');
+            }
             lucide.createIcons();
+
             toast.classList.remove('translate-y-[-150%]', 'opacity-0');
         }
 
         function hideToast() {
-            document.getElementById('toast').classList.add('translate-y-[-150%]', 'opacity-0');
+            const toast = document.getElementById('toast');
+            toast.classList.add('translate-y-[-150%]', 'opacity-0');
         }
 
         function showErrorToast(text) {
