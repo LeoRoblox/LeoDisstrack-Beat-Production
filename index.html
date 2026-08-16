@@ -181,6 +181,10 @@
                     <button onclick="showView('verified')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-verified">
                         <i data-lucide="badge-check" class="w-4 h-4 text-blue-500"></i> Verifizierter Künstler
                     </button>
+
+                    <button onclick="showView('updates')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-updates">
+                        <i data-lucide="megaphone" class="w-4 h-4 text-indigo-400"></i> Updates
+                    </button>
                 </nav>
 
                 <!-- Rechts: Suchfeld, Coins & Profil -->
@@ -412,6 +416,21 @@
                     <p class="text-neutral-400 text-sm mb-6">Diese User wurden von LEODISSTRACK als Künstler verifiziert.</p>
                     <div class="space-y-4" id="verified-artists-public-list"></div>
                     <p id="verified-artists-empty" class="text-neutral-500 text-sm text-center py-6 hidden">Aktuell wurde noch niemand verifiziert.</p>
+                </div>
+            </section>
+
+            <!-- ================= VIEW: UPDATES ================= -->
+            <section id="view-updates" class="view-section hidden max-w-4xl mx-auto space-y-8">
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-8 flex items-center gap-2">
+                        <i data-lucide="megaphone" class="text-indigo-400 w-6 h-6"></i> UPDATE LOG
+                    </h2>
+
+                    <div class="relative pl-6 border-l-2 border-neutral-800 space-y-2">
+                        <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-500 border-4 border-neutral-950"></span>
+                        <h3 class="text-base font-bold tracking-wide text-white uppercase">VERIFIZIERTE KÜNSTLER</h3>
+                        <p class="text-neutral-400 text-sm leading-relaxed">Hey liebe Usern, es gibt ein Update. Es gibt nun Verifizierte Künstler. Was macht das? Du wirst in der Kategorie "Verifizierte Künstler" angezeigt und hast überall ein Abzeichen neben deinen Namen. Selbst in Settings usw. Mehr funktionen überlege ich mir.</p>
+                    </div>
                 </div>
             </section>
 
@@ -861,6 +880,10 @@
                 document.getElementById('btn-verified').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-verified').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
                 renderVerifiedArtists();
+            } else if (viewName === 'updates') {
+                document.getElementById('view-updates').classList.remove('hidden');
+                document.getElementById('btn-updates').classList.add('text-white', 'bg-neutral-800');
+                document.getElementById('btn-updates').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
             } else if (viewName === 'settings') {
                 document.getElementById('view-settings').classList.remove('hidden');
                 prepareSettingsView();
