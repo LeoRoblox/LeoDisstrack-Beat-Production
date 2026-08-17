@@ -171,7 +171,7 @@
                         <i data-lucide="info" class="w-4 h-4"></i> Über uns
                     </button>
 
-                    <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
+                    <button onclick="showView('upload')" class="upload-nav-btn hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Beat hochladen
                     </button>
                     <button onclick="showView('coins')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-coins">
@@ -272,7 +272,8 @@
                                 <p class="text-neutral-300 leading-relaxed text-sm md:text-base">
                                     Ich habe ja eben was über Beat Coins gesagt. Ihr bekommt 70 Beat Coins wenn ihr einen Account in diesem Beat Shop erstellt. Was du ja gemacht hast! Du bekommst auch Beat Coins wenn du einen Creator Code einlöst. (Du bekommst 230 Beat Coins.) Viel Spaß mit den Beat coins. ^^
                                     </p>
-                            
+                            </div>
+
                             <div class="pt-4 border-t border-neutral-900 text-left">
                                 <h4 class="text-lg font-bold text-blue-500 tracking-wide uppercase mb-2">INFOS</h4>
                                 <p class="text-neutral-300 leading-relaxed text-sm md:text-base">
@@ -327,8 +328,9 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-neutral-300 mb-2">Lizenztyp</label>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <label class="cursor-pointer">
+                                    <p id="license-hint" class="text-xs text-neutral-400 mb-2 hidden">Um Beats für Beat Coins zu verkaufen, kaufe dir eine höhere Verifizierung.</p>
+                                    <div class="grid grid-cols-2 gap-3" id="license-options-container">
+                                        <label class="cursor-pointer" id="lic-free-label">
                                             <input type="radio" name="payment-type" value="kostenlos" checked class="sr-only peer" onchange="toggleCostField(false)">
                                             <div class="flex items-center justify-center gap-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl peer-checked:border-blue-500 peer-checked:bg-blue-500/10 text-neutral-400 peer-checked:text-blue-400 apple-transition">
                                                 <i data-lucide="gift" class="w-4 h-4"></i>
@@ -336,7 +338,7 @@
                                             </div>
                                         </label>
 
-                                        <label class="cursor-pointer">
+                                        <label class="cursor-pointer" id="lic-coins-label">
                                             <input type="radio" name="payment-type" value="coins" class="sr-only peer" onchange="toggleCostField(true)">
                                             <div class="flex items-center justify-center gap-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl peer-checked:border-green-500 peer-checked:bg-green-500/10 text-neutral-400 peer-checked:text-green-400 apple-transition">
                                                 <i data-lucide="circle-dollar-sign" class="w-4 h-4"></i>
@@ -375,32 +377,8 @@
                     <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
                         <i data-lucide="users" class="text-yellow-500 w-6 h-6"></i> Aktive User verwalten
                     </h2>
-                    <p class="text-neutral-400 text-sm mb-6">Vergebe Coins, deaktiviere Accounts oder ernenne sie zu Creatoren.</p>
+                    <p class="text-neutral-400 text-sm mb-6">Vergebe Coins, deaktiviere Accounts, ernenne sie zu Creatoren, Künstler oder Beat Maker.</p>
                     <div class="space-y-4" id="users-list"></div>
-                </div>
-
-                <!-- Frame: Verwaltung / Aktionen -->
-                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
-                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
-                        <i data-lucide="sliders-horizontal" class="text-neutral-400 w-6 h-6"></i> Verwaltung
-                    </h2>
-                    <p class="text-neutral-400 text-sm mb-6">Weitere Verwaltungsaktionen.</p>
-
-                    <div class="flex flex-wrap gap-3">
-                        <button onclick="toggleResetVerifyList()" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-blue-500/50 hover:text-blue-500 apple-transition flex items-center gap-2">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset Verify Kauf
-                        </button>
-
-                        <button onclick="toggleStatusChangeList()" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-blue-500/50 hover:text-blue-500 apple-transition flex items-center gap-2">
-                            <i data-lucide="message-square-text" class="w-4 h-4"></i> Status ändern
-                        </button>
-                    </div>
-
-                    <div id="reset-verify-list" class="space-y-3 mt-5 hidden"></div>
-                    <p id="reset-verify-empty" class="hidden text-neutral-500 text-sm text-center py-4">Aktuell hat niemand die Verifizierung gekauft.</p>
-
-                    <div id="status-change-list" class="space-y-3 mt-5 hidden"></div>
-                    <p id="status-change-empty" class="hidden text-neutral-500 text-sm text-center py-4">Aktuell hat niemand die Verifizierung gekauft.</p>
                 </div>
 
                 <!-- Dynamisches Frame: Deaktivierte Accounts -->
@@ -430,12 +408,21 @@
                     <div class="space-y-4" id="verified-artists-admin-list"></div>
                 </div>
 
+                <!-- Dynamisches Frame: Verifizierte Beat Maker -->
+                <div id="verified-beatmakers-container" class="bg-neutral-950 border border-indigo-950/40 rounded-3xl p-8 shadow-2xl hidden">
+                    <h2 class="text-xl font-bold tracking-tight text-indigo-400 mb-2 flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white font-bold text-xs">🪙</span> VERIFIZIERTE BEAT MAKER
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">User, die du zu Verifizierten Beat Makern ernannt hast.</p>
+                    <div class="space-y-4" id="verified-beatmakers-admin-list"></div>
+                </div>
+
                 <!-- Statisches Frame: Verifizierung gekauft (bleibt immer sichtbar) -->
                 <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
                     <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
                         <i data-lucide="badge-check" class="text-blue-500 w-6 h-6"></i> Verifizierung gekauft
                     </h2>
-                    <p class="text-neutral-400 text-sm mb-6">Benachrichtigungen über gekaufte Künstler-Verifizierungen.</p>
+                    <p class="text-neutral-400 text-sm mb-6">Benachrichtigungen über gekaufte Künstler- oder Beat Maker-Verifizierungen.</p>
                     <div class="space-y-4" id="verification-purchases-list"></div>
                     <p id="verification-purchases-empty" class="text-neutral-500 text-sm text-center py-6">Aktuell keine Benachrichtigungen.</p>
                 </div>
@@ -443,6 +430,17 @@
 
             <!-- ================= VIEW: VERIFIZIERTER KÜNSTLER (ÖFFENTLICH) ================= -->
             <section id="view-verified" class="view-section hidden max-w-4xl mx-auto space-y-8">
+                <!-- FRAME 1: Beat Maker Liste -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white font-bold text-xs">🪙</span> Verifizierter Beat Maker
+                    </h2>
+                    <p class="text-neutral-400 text-sm mb-6">Diese User wurden von LEODISSTRACK als Beat maker verifiziert.</p>
+                    <div class="space-y-4" id="verified-beatmakers-public-list"></div>
+                    <p id="verified-beatmakers-empty" class="text-neutral-500 text-sm text-center py-6 hidden">Aktuell wurde noch kein Beat Maker verifiziert.</p>
+                </div>
+
+                <!-- FRAME 2: Künstler Liste -->
                 <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
                     <h2 class="text-xl font-bold tracking-tight text-white mb-2 flex items-center gap-2">
                         <i data-lucide="badge-check" class="text-blue-500 w-6 h-6"></i> Verifizierter Künstler
@@ -452,19 +450,39 @@
                     <p id="verified-artists-empty" class="text-neutral-500 text-sm text-center py-6 hidden">Aktuell wurde noch niemand verifiziert.</p>
                 </div>
 
-                <!-- Verifizierung kaufen -->
+                <!-- FRAME 3: Künstler Verifizierung kaufen -->
                 <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
                     <div class="flex items-center gap-3 mb-4">
                         <h2 class="text-xl font-bold tracking-tight text-white">Verifizierter Künstler Abzeichen</h2>
                         <span class="bg-neutral-900 border border-neutral-700 text-neutral-300 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">BETA</span>
                     </div>
                     <p class="text-neutral-400 text-sm">Du willst als Künstler Verifiziert werden? Dann kauf dir die Verifizierung für 433 Beat Coins.</p>
-                    <p class="text-neutral-600 text-xs font-bold uppercase tracking-widest mt-3">VORTEILE KOMMEN BALD</p>
+                    
+                    <button onclick="openVorteileModal('kuenstler')" class="mt-3 text-xs font-bold text-blue-400 hover:underline uppercase tracking-widest block">
+                        Vorteile Ansehen
+                    </button>
 
-                    <button onclick="buyVerification()" id="buy-verification-btn" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                    <button onclick="buyVerification('kuenstler')" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
                         <i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Verifizierung Kaufen
                     </button>
-                    <p id="buy-verification-pending-text" class="hidden text-neutral-500 text-xs mt-3">Warte bis Leo dir das Abzeichen gibt.</p>
+                </div>
+
+                <!-- FRAME 4: Beat Maker Verifizierung kaufen -->
+                <div class="bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h2 class="text-xl font-bold tracking-tight text-white">Verifizierter Beat Maker Abzeichen</h2>
+                        <span class="bg-neutral-900 border border-neutral-700 text-neutral-300 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">BETA</span>
+                        <span class="bg-blue-600/20 border border-blue-500/30 text-blue-400 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">NEU</span>
+                    </div>
+                    <p class="text-neutral-400 text-sm">Du bist ein Beat Maker? Verifiziere dich als Beat Maker um Beats hochzuladen mit Kosten und Monatliche Beat Coins.</p>
+                    
+                    <button onclick="openVorteileModal('beatmaker')" class="mt-3 text-xs font-bold text-blue-400 hover:underline uppercase tracking-widest block">
+                        Vorteile Ansehen
+                    </button>
+
+                    <button onclick="buyVerification('beatmaker')" class="mt-6 w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/10 flex items-center justify-center gap-2 apple-transition">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-blue-600 font-bold text-[10px]">🪙</span> Verifizierung Kaufen
+                    </button>
                 </div>
             </section>
 
@@ -477,8 +495,8 @@
 
                     <div class="relative pl-6 border-l-2 border-neutral-800 space-y-2">
                         <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-indigo-500 border-4 border-neutral-950"></span>
-                        <h3 class="text-base font-bold tracking-wide text-white uppercase">VERIFIZIERTE KÜNSTLER</h3>
-                        <p class="text-neutral-400 text-sm leading-relaxed">Hey liebe Usern, es gibt ein Update. Es gibt nun Verifizierte Künstler. Was macht das? Du wirst in der Kategorie "Verifizierte Künstler" angezeigt und hast überall ein Abzeichen neben deinen Namen. Selbst in Settings usw. Mehr funktionen überlege ich mir.</p>
+                        <h3 class="text-base font-bold tracking-wide text-white uppercase">VERIFIZIERTE KÜNSTLER & BEAT MAKER</h3>
+                        <p class="text-neutral-400 text-sm leading-relaxed">Hey liebe Usern, es gibt ein Update. Es gibt nun Verifizierte Künstler & Beat Maker. Du kannst eigene Beats hochladen, Abzeichen freischalten und monatlich Beat Coins erhalten!</p>
                     </div>
                 </div>
             </section>
@@ -509,9 +527,22 @@
                         <div>
                             <label for="settings-username" class="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-1.5">
                                 Namen ändern
-                                <i data-lucide="badge-check" id="settings-verified-badge" class="hidden w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
+                                <span id="settings-verified-badge" class="hidden"></span>
                             </label>
                             <input type="text" id="settings-username" required class="w-full bg-neutral-900 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white font-medium">
+                        </div>
+
+                        <!-- Passwort-Anzeige Sektion -->
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">Dein Passwort</label>
+                            <div class="flex items-center gap-3">
+                                <div id="settings-password-display" class="flex-grow bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-sm text-white font-mono tracking-widest overflow-hidden text-ellipsis">
+                                    ••••
+                                </div>
+                                <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-password" class="px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-xs font-bold text-neutral-300 hover:text-white rounded-xl apple-transition shrink-0">
+                                    Passwort anzeigen
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Creator Code Sektion (Nur sichtbar wenn Creator) -->
@@ -547,6 +578,19 @@
         <footer class="border-t border-neutral-900 py-6 text-center text-xs text-neutral-600 mt-auto">
             &copy; 2026 LEODISSTRACK BEAT PRODUCTION. Alle Rechte vorbehalten.
         </footer>
+    </div>
+
+    <!-- ================= VORTEILE MODAL ================= -->
+    <div id="vorteile-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 apple-transition">
+        <div class="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-3xl p-8 shadow-2xl relative">
+            <button onclick="closeVorteileModal()" class="absolute top-6 right-6 text-neutral-400 hover:text-white apple-transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <h3 id="vorteile-title" class="text-xl font-extrabold tracking-wider text-white uppercase mb-6 text-center">VORTEILE</h3>
+            
+            <ul id="vorteile-list" class="space-y-4 text-sm text-neutral-300"></ul>
+        </div>
     </div>
 
     <!-- ================= BEAT PROFILE DETAILS MODAL ================= -->
@@ -633,9 +677,28 @@
         let verificationPurchases = {};
         let currentUser = null;
         let selectedBeatForModal = null;
-        let isTrueOwner = false; // Sichere Erfassung der Adminrechte
+        let isTrueOwner = false;
+        let showPasswordState = false;
 
         const OWNER_NAME = "LeoDisstrack-YT2";
+
+        // Helper: Erzeuge Verify Icon SVG/HTML
+        function getBadgeHTML(userObj, isOwnerCheck = false) {
+            const username = typeof userObj === 'string' ? userObj : userObj?.username;
+            const isVerified = typeof userObj === 'object' ? userObj?.isVerifiedArtist : false;
+            const isBeatMaker = typeof userObj === 'object' ? userObj?.isVerifiedBeatMaker : false;
+
+            if (username === OWNER_NAME || isOwnerCheck) {
+                return `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-yellow-300 font-bold text-[10px] ml-1 shadow" title="Owner"><i data-lucide="crown" class="w-3 h-3"></i></span>`;
+            }
+            if (isBeatMaker) {
+                return `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white font-bold text-[9px] ml-1 shadow" title="Verifizierter Beat Maker">🪙</span>`;
+            }
+            if (isVerified) {
+                return `<i data-lucide="badge-check" class="w-4 h-4 text-blue-500 ml-1 inline" title="Verifizierter Künstler"></i>`;
+            }
+            return '';
+        }
 
         function listenToFirebaseData() {
             onValue(ref(db, 'beats'), (snapshot) => {
@@ -651,7 +714,6 @@
                 const data = snapshot.val();
                 users = data ? Object.values(data) : [];
                 
-                // Live-Update des "Über uns" Frames durch Auslesen der Admin-Daten
                 const adminAccount = users.find(u => u.isTrueAdmin === true || u.username === OWNER_NAME);
                 if (adminAccount) {
                     const aboutName = document.getElementById('about-owner-name');
@@ -669,7 +731,7 @@
                             document.getElementById('profile-name-display').innerText = currentUser.username;
                             document.getElementById('header-avatar').src = currentUser.avatar;
                             updateCoinsDisplay();
-                            updateBuyVerificationUI();
+                            updateUploadPermissions();
                         }
                     }
                 }
@@ -729,6 +791,34 @@
                 }
             });
         });
+
+        function updateUploadPermissions() {
+            const uploadBtn = document.getElementById('btn-upload');
+            if (!currentUser) return;
+
+            const canUpload = isTrueOwner || currentUser.isTrueAdmin || currentUser.isVerifiedArtist || currentUser.isVerifiedBeatMaker;
+            if (canUpload) {
+                uploadBtn.classList.remove('hidden');
+            } else {
+                uploadBtn.classList.add('hidden');
+            }
+
+            // Anpassungen im Upload-Formular für Verifizierte Künstler (ohne BeatMaker/Admin)
+            const isOnlyArtist = currentUser.isVerifiedArtist && !currentUser.isVerifiedBeatMaker && !isTrueOwner && !currentUser.isTrueAdmin;
+            const coinsLabel = document.getElementById('lic-coins-label');
+            const freeRadio = document.querySelector('input[name="payment-type"][value="kostenlos"]');
+            const licenseHint = document.getElementById('license-hint');
+
+            if (isOnlyArtist) {
+                if (coinsLabel) coinsLabel.classList.add('hidden');
+                if (licenseHint) licenseHint.classList.remove('hidden');
+                if (freeRadio) freeRadio.checked = true;
+                toggleCostField(false);
+            } else {
+                if (coinsLabel) coinsLabel.classList.remove('hidden');
+                if (licenseHint) licenseHint.classList.add('hidden');
+            }
+        }
 
         window.toggleCostField = function(show) {
             const costFrame = document.getElementById('cost-frame');
@@ -807,13 +897,14 @@
             const newUser = {
                 username: usernameInput,
                 password: passwordInput,
-                coins: usernameInput === OWNER_NAME ? 99999999 : 0, 
+                coins: usernameInput === OWNER_NAME ? 99999999 : 70, 
                 avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${usernameInput}`,
                 deactivated: false,
                 lastCreatorCodeChange: null,
                 customCreatorCode: "",
                 isTrueAdmin: usernameInput === OWNER_NAME ? true : false,
-                isVerifiedArtist: false
+                isVerifiedArtist: false,
+                isVerifiedBeatMaker: false
             };
 
             set(ref(db, 'users/' + usernameInput), newUser).then(() => {
@@ -881,6 +972,7 @@
             }
 
             updateCoinsDisplay();
+            updateUploadPermissions();
             renderBeats();
             renderUsers();
             showView('home');
@@ -927,6 +1019,7 @@
                 document.getElementById('view-upload').classList.remove('hidden');
                 document.getElementById('btn-upload').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-upload').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
+                updateUploadPermissions();
             } else if (viewName === 'coins') {
                 document.getElementById('view-coins').classList.remove('hidden');
                 document.getElementById('btn-coins').classList.add('text-white', 'bg-neutral-800');
@@ -937,7 +1030,6 @@
                 document.getElementById('btn-verified').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-verified').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
                 renderVerifiedArtists();
-                updateBuyVerificationUI();
             } else if (viewName === 'updates') {
                 document.getElementById('view-updates').classList.remove('hidden');
                 document.getElementById('btn-updates').classList.add('text-white', 'bg-neutral-800');
@@ -953,12 +1045,16 @@
 
         function prepareSettingsView() {
             tempAvatarData = null;
+            showPasswordState = false;
             document.getElementById('settings-username').value = currentUser.username;
             document.getElementById('settings-avatar-preview').src = currentUser.avatar;
             document.getElementById('settings-avatar-file').value = "";
 
+            renderPasswordDisplay();
+
             const verifiedBadge = document.getElementById('settings-verified-badge');
-            if (currentUser.isVerifiedArtist) {
+            verifiedBadge.innerHTML = getBadgeHTML(currentUser);
+            if (currentUser.isVerifiedArtist || currentUser.isVerifiedBeatMaker || currentUser.username === OWNER_NAME) {
                 verifiedBadge.classList.remove('hidden');
             } else {
                 verifiedBadge.classList.add('hidden');
@@ -993,7 +1089,27 @@
             } else {
                 creatorSection.classList.add('hidden');
             }
+            lucide.createIcons();
         }
+
+        function renderPasswordDisplay() {
+            const passDisplay = document.getElementById('settings-password-display');
+            const btn = document.getElementById('btn-toggle-password');
+            const rawPass = currentUser.password || "";
+
+            if (showPasswordState) {
+                passDisplay.innerText = rawPass;
+                btn.innerText = "Passwort ausblenden";
+            } else {
+                passDisplay.innerText = "*".repeat(rawPass.length);
+                btn.innerText = "Passwort anzeigen";
+            }
+        }
+
+        window.togglePasswordVisibility = function() {
+            showPasswordState = !showPasswordState;
+            renderPasswordDisplay();
+        };
 
         window.previewSettingsAvatar = function(input) {
             const preview = document.getElementById('settings-avatar-preview');
@@ -1052,12 +1168,20 @@
             await set(ref(db, `users/${newName}`), currentUser);
 
             beats.forEach(async (beat) => {
-                if(beat.purchasedBy) {
+                let updated = false;
+                if (beat.uploader === oldName) {
+                    beat.uploader = newName;
+                    updated = true;
+                }
+                if (beat.purchasedBy) {
                     const buyIndex = beat.purchasedBy.indexOf(oldName);
                     if (buyIndex > -1) {
                         beat.purchasedBy[buyIndex] = newName;
-                        await set(ref(db, `beats/${beat.id}`), beat);
+                        updated = true;
                     }
+                }
+                if (updated) {
+                    await set(ref(db, `beats/${beat.id}`), beat);
                 }
             });
 
@@ -1125,6 +1249,7 @@
                         audioName: audioFile.name,
                         coverData: eCover.target.result,
                         cost: finalCost,
+                        uploader: currentUser.username,
                         purchasedBy: ["placeholder_init"]
                     };
 
@@ -1167,8 +1292,13 @@
                 grid.innerHTML = '';
                 filtered.forEach(beat => {
                     const hasPurchasedList = beat.purchasedBy || [];
-                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
+                    const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin || beat.uploader === currentUser.username;
                     
+                    const uploaderObj = users.find(u => u.username === beat.uploader);
+                    const uploaderName = beat.uploader || OWNER_NAME;
+                    const isOwnerUpload = uploaderName === OWNER_NAME || (uploaderObj && uploaderObj.isTrueAdmin);
+                    const badgeHtml = getBadgeHTML(uploaderObj || uploaderName, isOwnerUpload);
+
                     const card = document.createElement('div');
                     card.className = "bg-neutral-950 border border-neutral-900 rounded-3xl p-5 shadow-xl hover:border-neutral-800/80 apple-transition flex flex-col justify-between";
                     
@@ -1184,7 +1314,10 @@
                             </div>
                             <div class="mt-4">
                                 <h3 class="font-bold text-white text-lg tracking-wide truncate">${beat.title}</h3>
-                                <p class="text-xs text-neutral-500 mt-0.5 truncate">${beat.audioName}</p>
+                                <p class="text-xs text-neutral-400 mt-1 flex items-center gap-1">
+                                    Von <span class="font-semibold text-neutral-200">${uploaderName}</span> ${badgeHtml}
+                                </p>
+                                <p class="text-[11px] text-neutral-500 mt-0.5 truncate">${beat.audioName}</p>
                             </div>
                         </div>
                         <div class="mt-5 flex items-center justify-between border-t border-neutral-900 pt-4">
@@ -1222,7 +1355,7 @@
             buttonsContainer.innerHTML = '';
 
             const hasPurchasedList = beat.purchasedBy || [];
-            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin;
+            const isPurchased = hasPurchasedList.includes(currentUser.username) || beat.cost === 0 || isTrueOwner || currentUser.isTrueAdmin || beat.uploader === currentUser.username;
 
             if (beat.cost === 0) {
                 badgeContainer.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20"><i data-lucide="gift" class="w-3.5 h-3.5"></i> KOSTENLOSE LIZENZ</span>`;
@@ -1245,7 +1378,6 @@
                     </a>
                 `;
             } else {
-                // Audio Vorschau mit 50 Sekunden Limitierung
                 buttonsContainer.innerHTML = `
                     <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
                         <audio id="preview-audio-player" controls class="w-full" src="${beat.audioData}"></audio>
@@ -1255,7 +1387,6 @@
                     </button>
                 `;
 
-                // Timeout Listener für 50-Sekunden-Stopp hinzufügen
                 setTimeout(() => {
                     const pPlayer = document.getElementById('preview-audio-player');
                     if (pPlayer) {
@@ -1270,7 +1401,7 @@
                 }, 100);
             }
 
-            if (isTrueOwner || currentUser.isTrueAdmin) {
+            if (isTrueOwner || currentUser.isTrueAdmin || beat.uploader === currentUser.username) {
                 buttonsContainer.innerHTML += `
                     <button onclick="deleteBeat('${beat.id}')" class="w-full bg-red-950/40 hover:bg-red-950/60 border border-red-900/30 text-red-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 apple-transition text-xs">
                         <i data-lucide="trash-2" class="w-4 h-4"></i> Beat unwiderruflich löschen
@@ -1343,6 +1474,8 @@
             const creatorContainer = document.getElementById('creator-container');
             const verifiedAdminList = document.getElementById('verified-artists-admin-list');
             const verifiedAdminContainer = document.getElementById('verified-artists-container');
+            const verifiedBeatmakersAdminList = document.getElementById('verified-beatmakers-admin-list');
+            const verifiedBeatmakersContainer = document.getElementById('verified-beatmakers-container');
 
             if (!usersList) return;
 
@@ -1350,10 +1483,12 @@
             deactivatedList.innerHTML = '';
             creatorsList.innerHTML = '';
             verifiedAdminList.innerHTML = '';
+            if (verifiedBeatmakersAdminList) verifiedBeatmakersAdminList.innerHTML = '';
 
             let hasDeactivated = false;
             let hasCreators = false;
             let hasVerified = false;
+            let hasBeatMakers = false;
 
             users.forEach(user => {
                 if (user.isTrueAdmin || user.username === OWNER_NAME) return;
@@ -1362,6 +1497,7 @@
                 const isCreator = creators[user.username] !== undefined;
                 const activeCreatorCode = isCreator ? (creators[user.username] || user.username) : user.username;
                 const isVerifiedArtist = !!user.isVerifiedArtist;
+                const isVerifiedBeatMaker = !!user.isVerifiedBeatMaker;
 
                 const userRow = document.createElement('div');
                 userRow.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
@@ -1370,7 +1506,7 @@
                     <div class="flex items-center gap-3">
                         <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
                         <div>
-                            <p class="font-bold text-white flex items-center gap-1.5">${user.username} ${isVerifiedArtist ? '<i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>' : ''}</p>
+                            <p class="font-bold text-white flex items-center gap-1">${user.username} ${getBadgeHTML(user)}</p>
                             <p class="text-xs text-neutral-500">Münzen: ${user.coins} | Angemeldet</p>
                         </div>
                     </div>
@@ -1390,7 +1526,11 @@
                         </button>
 
                         <button onclick="toggleVerifiedArtist('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isVerifiedArtist ? 'border-blue-500/30 bg-blue-500/10 text-blue-500 hover:bg-transparent' : 'border-neutral-800 hover:border-blue-500/50 hover:text-blue-500'} apple-transition flex items-center gap-1.5">
-                            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> ${isVerifiedArtist ? 'Verifizierung entziehen' : 'Verifizierter Künstler'}
+                            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i> ${isVerifiedArtist ? 'Künstler entziehen' : 'Verifizierter Künstler'}
+                        </button>
+
+                        <button onclick="toggleVerifiedBeatMaker('${user.username}')" class="px-3 py-2 rounded-xl text-xs font-semibold border ${isVerifiedBeatMaker ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-transparent' : 'border-neutral-800 hover:border-indigo-500/50 hover:text-indigo-400'} apple-transition flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-blue-500 text-white font-bold text-[8px]">🪙</span> ${isVerifiedBeatMaker ? 'Beat Maker entziehen' : 'Verifizierter Beat Maker'}
                         </button>
 
                         <button onclick="toggleUserActivation('${user.username}')" class="p-2 border border-red-950/40 hover:bg-red-950/20 text-red-400 rounded-xl apple-transition" title="Account deaktivieren">
@@ -1459,6 +1599,25 @@
                     `;
                     verifiedAdminList.appendChild(verifiedRow);
                 }
+
+                if (isVerifiedBeatMaker && !isDeactivated && verifiedBeatmakersAdminList) {
+                    hasBeatMakers = true;
+                    const bmRow = document.createElement('div');
+                    bmRow.className = "flex items-center justify-between p-4 bg-indigo-950/15 border border-indigo-900/20 rounded-2xl";
+                    bmRow.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div class="flex items-center gap-1.5">
+                                <p class="font-bold text-white">${user.username}</p>
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white font-bold text-[9px]">🪙</span>
+                            </div>
+                        </div>
+                        <button onclick="toggleVerifiedBeatMaker('${user.username}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Beat Maker Verifizierung entfernen">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    verifiedBeatmakersAdminList.appendChild(bmRow);
+                }
             });
 
             if (hasDeactivated) deactivatedContainer.classList.remove('hidden');
@@ -1470,7 +1629,10 @@
             if (hasVerified) verifiedAdminContainer.classList.remove('hidden');
             else verifiedAdminContainer.classList.add('hidden');
 
-            renderResetVerifyList();
+            if (verifiedBeatmakersContainer) {
+                if (hasBeatMakers) verifiedBeatmakersContainer.classList.remove('hidden');
+                else verifiedBeatmakersContainer.classList.add('hidden');
+            }
 
             lucide.createIcons();
         }
@@ -1478,278 +1640,149 @@
         function renderVerifiedArtists() {
             const publicList = document.getElementById('verified-artists-public-list');
             const emptyMsg = document.getElementById('verified-artists-empty');
-            if (!publicList) return;
+            
+            const bmPublicList = document.getElementById('verified-beatmakers-public-list');
+            const bmEmptyMsg = document.getElementById('verified-beatmakers-empty');
 
-            publicList.innerHTML = '';
-            const verifiedUsers = users.filter(u => u.isVerifiedArtist && !u.deactivated);
+            if (publicList) {
+                publicList.innerHTML = '';
+                const verifiedUsers = users.filter(u => u.isVerifiedArtist && !u.deactivated);
 
-            if (verifiedUsers.length === 0) {
-                emptyMsg.classList.remove('hidden');
-            } else {
-                emptyMsg.classList.add('hidden');
-                verifiedUsers.forEach(user => {
-                    const row = document.createElement('div');
-                    row.className = "flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
-                    row.innerHTML = `
-                        <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
-                        <div class="flex items-center gap-1.5">
-                            <p class="font-bold text-white">${user.username}</p>
-                            <i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
-                        </div>
-                    `;
-                    publicList.appendChild(row);
-                });
+                if (verifiedUsers.length === 0) {
+                    emptyMsg.classList.remove('hidden');
+                } else {
+                    emptyMsg.classList.add('hidden');
+                    verifiedUsers.forEach(user => {
+                        const row = document.createElement('div');
+                        row.className = "flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
+                        row.innerHTML = `
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div class="flex items-center gap-1.5">
+                                <p class="font-bold text-white">${user.username}</p>
+                                <i data-lucide="badge-check" class="w-4 h-4 text-blue-500" title="Verifizierter Künstler"></i>
+                            </div>
+                        `;
+                        publicList.appendChild(row);
+                    });
+                }
             }
 
-            lucide.createIcons();
-        }
+            if (bmPublicList) {
+                bmPublicList.innerHTML = '';
+                const bmUsers = users.filter(u => u.isVerifiedBeatMaker && !u.deactivated);
 
-        function updateBuyVerificationUI() {
-            const btn = document.getElementById('buy-verification-btn');
-            const pendingText = document.getElementById('buy-verification-pending-text');
-            if (!btn || !currentUser) return;
-
-            if (currentUser.verificationPending) {
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = `<i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Du hast es bereits gekauft.`;
-                if (pendingText) pendingText.classList.remove('hidden');
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = `<i data-lucide="badge-check" class="w-5 h-5 text-white"></i> Verifizierung Kaufen`;
-                if (pendingText) pendingText.classList.add('hidden');
+                if (bmUsers.length === 0) {
+                    bmEmptyMsg.classList.remove('hidden');
+                } else {
+                    bmEmptyMsg.classList.add('hidden');
+                    bmUsers.forEach(user => {
+                        const row = document.createElement('div');
+                        row.className = "flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 rounded-2xl";
+                        row.innerHTML = `
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div class="flex items-center gap-1.5">
+                                <p class="font-bold text-white">${user.username}</p>
+                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white font-bold text-[9px]">🪙</span>
+                            </div>
+                        `;
+                        bmPublicList.appendChild(row);
+                    });
+                }
             }
+
             lucide.createIcons();
         }
 
         function renderVerificationPurchases() {
-            const list = document.getElementById('verification-purchases-list');
+            const container = document.getElementById('verification-purchases-list');
             const emptyMsg = document.getElementById('verification-purchases-empty');
-            if (!list) return;
+            if (!container) return;
 
-            list.innerHTML = '';
-            const entries = Object.entries(verificationPurchases || {});
+            container.innerHTML = '';
+            const list = Object.values(verificationPurchases);
 
-            if (entries.length === 0) {
+            if (list.length === 0) {
                 if (emptyMsg) emptyMsg.classList.remove('hidden');
             } else {
                 if (emptyMsg) emptyMsg.classList.add('hidden');
-                entries.forEach(([id, purchase]) => {
-                    const row = document.createElement('div');
-                    row.className = "flex items-center justify-between p-4 bg-blue-950/15 border border-blue-900/20 rounded-2xl";
-                    row.innerHTML = `
-                        <p class="text-sm text-neutral-200"><span class="font-bold text-white">${purchase.username}</span> hat die Verifizierung zu "Künstler" gekauft.</p>
-                        <button onclick="deleteVerificationPurchase('${id}')" class="p-2 border border-neutral-800 hover:border-red-500/50 hover:text-red-500 rounded-xl apple-transition" title="Benachrichtigung löschen">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    `;
-                    list.appendChild(row);
-                });
-            }
-
-            lucide.createIcons();
-        }
-
-        let resetVerifyListVisible = false;
-
-        window.toggleResetVerifyList = function() {
-            resetVerifyListVisible = !resetVerifyListVisible;
-            const list = document.getElementById('reset-verify-list');
-            if (resetVerifyListVisible) {
-                renderResetVerifyList();
-                list.classList.remove('hidden');
-            } else {
-                list.classList.add('hidden');
-                document.getElementById('reset-verify-empty').classList.add('hidden');
-            }
-        };
-
-        function renderResetVerifyList() {
-            if (!resetVerifyListVisible) return;
-            const list = document.getElementById('reset-verify-list');
-            const emptyMsg = document.getElementById('reset-verify-empty');
-            if (!list) return;
-
-            list.innerHTML = '';
-            const pendingUsers = users.filter(u => u.verificationPending);
-
-            if (pendingUsers.length === 0) {
-                emptyMsg.classList.remove('hidden');
-            } else {
-                emptyMsg.classList.add('hidden');
-                pendingUsers.forEach(user => {
-                    const row = document.createElement('button');
-                    row.onclick = () => resetVerifyPurchase(user.username);
-                    row.className = "w-full flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800/80 hover:border-blue-500/50 rounded-2xl text-left apple-transition";
-                    row.innerHTML = `
-                        <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                list.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = "p-4 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-between";
+                    item.innerHTML = `
                         <div>
-                            <p class="font-bold text-white">${user.username}</p>
-                            <p class="text-xs text-neutral-500">Klicken, um den Kauf-Status zurückzusetzen</p>
+                            <p class="font-bold text-white text-sm">${p.username} hat die ${p.type === 'beatmaker' ? 'Beat Maker' : 'Künstler'}-Verifizierung gekauft!</p>
+                            <p class="text-xs text-neutral-500">${p.date || ''}</p>
                         </div>
                     `;
-                    list.appendChild(row);
+                    container.appendChild(item);
                 });
             }
-
-            lucide.createIcons();
         }
 
-        window.resetVerifyPurchase = async function(username) {
-            const user = users.find(u => u.username === username);
-            if (user) {
-                user.verificationPending = false;
-                await set(ref(db, `users/${username}/verificationPending`), false);
-                showSuccessToast(`${username} kann die Verifizierung erneut kaufen.`);
-                renderResetVerifyList();
-                if (currentUser && currentUser.username === username) {
-                    currentUser.verificationPending = false;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateBuyVerificationUI();
-                }
-            }
-        };
-
-        let statusChangeListVisible = false;
-        let statusChangeOpenUser = null;
-
-        window.toggleStatusChangeList = function() {
-            statusChangeListVisible = !statusChangeListVisible;
-            const list = document.getElementById('status-change-list');
-            if (statusChangeListVisible) {
-                renderStatusChangeList();
-                list.classList.remove('hidden');
-            } else {
-                list.classList.add('hidden');
-                document.getElementById('status-change-empty').classList.add('hidden');
-                statusChangeOpenUser = null;
-            }
-        };
-
-        window.toggleStatusChangeUser = function(username) {
-            statusChangeOpenUser = (statusChangeOpenUser === username) ? null : username;
-            renderStatusChangeList();
-        };
-
-        function renderStatusChangeList() {
-            if (!statusChangeListVisible) return;
-            const list = document.getElementById('status-change-list');
-            const emptyMsg = document.getElementById('status-change-empty');
-            if (!list) return;
-
+        window.openVorteileModal = function(type) {
+            const modal = document.getElementById('vorteile-modal');
+            const list = document.getElementById('vorteile-list');
             list.innerHTML = '';
-            const pendingUsers = users.filter(u => u.verificationPending);
 
-            if (pendingUsers.length === 0) {
-                emptyMsg.classList.remove('hidden');
-            } else {
-                emptyMsg.classList.add('hidden');
-                pendingUsers.forEach(user => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "bg-neutral-900 border border-neutral-800/80 rounded-2xl overflow-hidden";
-
-                    const isOpen = statusChangeOpenUser === user.username;
-                    const currentStatus = user.verificationStatusText || "";
-
-                    wrapper.innerHTML = `
-                        <button onclick="toggleStatusChangeUser('${user.username}')" class="w-full flex items-center gap-3 p-4 text-left apple-transition hover:bg-neutral-800/40">
-                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
-                            <div class="flex-1">
-                                <p class="font-bold text-white">${user.username}</p>
-                                <p class="text-xs text-neutral-500">${currentStatus ? 'Status: ' + currentStatus : 'Kein eigener Status gesetzt'}</p>
-                            </div>
-                            <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 text-neutral-500"></i>
-                        </button>
-                        ${isOpen ? `
-                        <div class="p-4 pt-0 space-y-3">
-                            <input type="text" id="status-input-${user.username}" placeholder="Status Text eingeben..." value="${currentStatus.replace(/"/g, '&quot;')}" class="w-full bg-neutral-950 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white">
-                            <div class="flex gap-2">
-                                <button onclick="saveStatusText('${user.username}')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl apple-transition">Speichern</button>
-                                <button onclick="resetStatusText('${user.username}')" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-red-500/50 hover:text-red-500 apple-transition">Reset</button>
-                            </div>
-                        </div>
-                        ` : ''}
-                    `;
-                    list.appendChild(wrapper);
-                });
+            if (type === 'kuenstler') {
+                list.innerHTML = `
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Lade Beats hoch (Lizenztyp nur Kostenlos)</li>
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Abzeichen neben deinen Namen</li>
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Monatlich 80 Beat Coins</li>
+                    <li class="text-neutral-500 italic mt-2">mehr kommt bald.</li>
+                `;
+            } else if (type === 'beatmaker') {
+                list.innerHTML = `
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Lade Beats hoch die auch kosten</li>
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Abzeichen neben deinen Namen</li>
+                    <li class="flex items-center gap-2"><i data-lucide="check" class="text-green-500 w-4 h-4"></i> Monatlich 115 Beat Coins</li>
+                    <li class="text-neutral-500 italic mt-2">mehr kommt bald.</li>
+                `;
             }
 
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 50);
             lucide.createIcons();
-        }
-
-        window.saveStatusText = async function(username) {
-            const input = document.getElementById(`status-input-${username}`);
-            if (!input) return;
-            const text = input.value.trim();
-            const user = users.find(u => u.username === username);
-            if (user) {
-                user.verificationStatusText = text;
-                await set(ref(db, `users/${username}/verificationStatusText`), text);
-                showSuccessToast(`Status für ${username} gespeichert.`);
-                renderStatusChangeList();
-                if (currentUser && currentUser.username === username) {
-                    currentUser.verificationStatusText = text;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateBuyVerificationUI();
-                }
-            }
         };
 
-        window.resetStatusText = async function(username) {
-            const user = users.find(u => u.username === username);
-            if (user) {
-                user.verificationStatusText = "";
-                await set(ref(db, `users/${username}/verificationStatusText`), "");
-                showSuccessToast(`Status für ${username} zurückgesetzt.`);
-                renderStatusChangeList();
-                if (currentUser && currentUser.username === username) {
-                    currentUser.verificationStatusText = "";
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    updateBuyVerificationUI();
-                }
-            }
+        window.closeVorteileModal = function() {
+            const modal = document.getElementById('vorteile-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 400);
         };
 
-        window.deleteVerificationPurchase = async function(id) {
-            await remove(ref(db, `verificationPurchases/${id}`));
-        };
-
-        window.buyVerification = async function() {
-            if (!currentUser) return;
-
-            if (currentUser.verificationPending) {
-                showErrorToast("Du hast die Verifizierung bereits gekauft. Warte bis Leo sie bestätigt.");
+        window.buyVerification = async function(type = 'kuenstler') {
+            const cost = 433;
+            if (currentUser.coins < cost && !isTrueOwner && !currentUser.isTrueAdmin) {
+                showErrorToast("Du hast leider nicht genug Beat coins um dir diese Verifizierung zu kaufen!:(");
                 return;
             }
 
-            if (currentUser.isVerifiedArtist) {
-                showErrorToast("Du bist bereits ein Verifizierter Künstler!");
-                return;
+            if (!isTrueOwner && !currentUser.isTrueAdmin) {
+                currentUser.coins -= cost;
+                await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
             }
 
-            if (currentUser.coins < 433) {
-                showErrorToast("Du hast leider nicht genug Beat Coins für die Verifizierung! :(");
-                return;
+            if (type === 'kuenstler') {
+                currentUser.isVerifiedArtist = true;
+                await set(ref(db, `users/${currentUser.username}/isVerifiedArtist`), true);
+            } else if (type === 'beatmaker') {
+                currentUser.isVerifiedBeatMaker = true;
+                await set(ref(db, `users/${currentUser.username}/isVerifiedBeatMaker`), true);
             }
 
-            currentUser.coins -= 433;
-            await set(ref(db, `users/${currentUser.username}/coins`), currentUser.coins);
-
-            currentUser.verificationPending = true;
-            await set(ref(db, `users/${currentUser.username}/verificationPending`), true);
-
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-            const purchaseId = Date.now().toString();
+            const purchaseId = 'purch-' + Date.now();
             await set(ref(db, `verificationPurchases/${purchaseId}`), {
                 username: currentUser.username,
-                timestamp: purchaseId
+                type: type,
+                date: new Date().toLocaleDateString('de-DE')
             });
 
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
             updateCoinsDisplay();
-            updateBuyVerificationUI();
-            showSuccessToast("Verifizierung gekauft! Warte bis Leo dir das Abzeichen gibt.");
+            updateUploadPermissions();
+            showSuccessToast("Verifizierung erfolgreich gekauft!");
+            renderVerifiedArtists();
         };
 
         window.modifyUserCoins = async function(username, add) {
@@ -1807,11 +1840,16 @@
             if (user) {
                 user.isVerifiedArtist = !user.isVerifiedArtist;
                 await set(ref(db, `users/${username}/isVerifiedArtist`), user.isVerifiedArtist);
-                if (user.isVerifiedArtist && user.verificationPending) {
-                    user.verificationPending = false;
-                    await set(ref(db, `users/${username}/verificationPending`), false);
-                }
                 showSuccessToast(user.isVerifiedArtist ? `${username} ist jetzt Verifizierter Künstler!` : `${username} ist kein Verifizierter Künstler mehr.`);
+            }
+        };
+
+        window.toggleVerifiedBeatMaker = async function(username) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.isVerifiedBeatMaker = !user.isVerifiedBeatMaker;
+                await set(ref(db, `users/${username}/isVerifiedBeatMaker`), user.isVerifiedBeatMaker);
+                showSuccessToast(user.isVerifiedBeatMaker ? `${username} ist jetzt Verifizierter Beat Maker!` : `${username} ist kein Verifizierter Beat Maker mehr.`);
             }
         };
 
