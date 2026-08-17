@@ -171,7 +171,7 @@
                         <i data-lucide="info" class="w-4 h-4"></i> Über uns
                     </button>
 
-                    <button onclick="showView('upload')" class="upload-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
+                    <button onclick="showView('upload')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-upload">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i> Beat hochladen
                     </button>
                     <button onclick="showView('coins')" class="admin-only hidden nav-btn px-4 py-2 rounded-lg text-sm font-medium apple-transition text-neutral-400 hover:text-white hover:bg-neutral-800/50 flex items-center gap-2" id="btn-coins">
@@ -326,10 +326,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-neutral-300 mb-2 flex items-center justify-between gap-2">
-                                        <span>Lizenztyp</span>
-                                        <span id="license-restricted-text" class="hidden text-[11px] font-normal text-neutral-500 text-right">Um Beats für Beat Coins zu verkaufen, kaufe dir eine höhere Verifizierung.</span>
-                                    </label>
+                                    <label class="block text-sm font-medium text-neutral-300 mb-2">Lizenztyp</label>
                                     <div class="grid grid-cols-2 gap-3">
                                         <label class="cursor-pointer">
                                             <input type="radio" name="payment-type" value="kostenlos" checked class="sr-only peer" onchange="toggleCostField(false)">
@@ -339,7 +336,7 @@
                                             </div>
                                         </label>
 
-                                        <label id="license-coins-option" class="cursor-pointer">
+                                        <label class="cursor-pointer">
                                             <input type="radio" name="payment-type" value="coins" class="sr-only peer" onchange="toggleCostField(true)">
                                             <div class="flex items-center justify-center gap-2 p-3 bg-neutral-900 border border-neutral-800 rounded-xl peer-checked:border-green-500 peer-checked:bg-green-500/10 text-neutral-400 peer-checked:text-green-400 apple-transition">
                                                 <i data-lucide="circle-dollar-sign" class="w-4 h-4"></i>
@@ -393,10 +390,17 @@
                         <button onclick="toggleResetVerifyList()" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-blue-500/50 hover:text-blue-500 apple-transition flex items-center gap-2">
                             <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset Verify Kauf
                         </button>
+
+                        <button onclick="toggleStatusChangeList()" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-blue-500/50 hover:text-blue-500 apple-transition flex items-center gap-2">
+                            <i data-lucide="message-square-text" class="w-4 h-4"></i> Status ändern
+                        </button>
                     </div>
 
                     <div id="reset-verify-list" class="space-y-3 mt-5 hidden"></div>
                     <p id="reset-verify-empty" class="hidden text-neutral-500 text-sm text-center py-4">Aktuell hat niemand die Verifizierung gekauft.</p>
+
+                    <div id="status-change-list" class="space-y-3 mt-5 hidden"></div>
+                    <p id="status-change-empty" class="hidden text-neutral-500 text-sm text-center py-4">Aktuell hat niemand die Verifizierung gekauft.</p>
                 </div>
 
                 <!-- Dynamisches Frame: Deaktivierte Accounts -->
@@ -737,26 +741,6 @@
             }
         };
 
-        function prepareUploadView() {
-            if (!currentUser) return;
-            const canSellForCoins = isTrueOwner || currentUser.isTrueAdmin || currentUser.isVerifiedBeatMaker;
-            const coinsOption = document.getElementById('license-coins-option');
-            const restrictedText = document.getElementById('license-restricted-text');
-            const freeRadio = document.querySelector('input[name="payment-type"][value="kostenlos"]');
-            const coinsRadio = document.querySelector('input[name="payment-type"][value="coins"]');
-
-            if (canSellForCoins) {
-                coinsOption.classList.remove('hidden');
-                restrictedText.classList.add('hidden');
-            } else {
-                coinsOption.classList.add('hidden');
-                restrictedText.classList.remove('hidden');
-                if (freeRadio) freeRadio.checked = true;
-                if (coinsRadio) coinsRadio.checked = false;
-                toggleCostField(false);
-            }
-        }
-
         window.toggleProfileDropdown = function(forceState) {
             const dropdown = document.getElementById('profile-dropdown');
             const show = forceState !== undefined ? forceState : dropdown.classList.contains('hidden');
@@ -896,12 +880,6 @@
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             }
 
-            if (isTrueOwner || user.isTrueAdmin || user.isVerifiedArtist || user.isVerifiedBeatMaker) {
-                document.querySelectorAll('.upload-only').forEach(el => el.classList.remove('hidden'));
-            } else {
-                document.querySelectorAll('.upload-only').forEach(el => el.classList.add('hidden'));
-            }
-
             updateCoinsDisplay();
             renderBeats();
             renderUsers();
@@ -946,15 +924,9 @@
                 document.getElementById('btn-about').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-about').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
             } else if (viewName === 'upload') {
-                const canUpload = isTrueOwner || (currentUser && (currentUser.isTrueAdmin || currentUser.isVerifiedArtist || currentUser.isVerifiedBeatMaker));
-                if (!canUpload) {
-                    showView('home');
-                    return;
-                }
                 document.getElementById('view-upload').classList.remove('hidden');
                 document.getElementById('btn-upload').classList.add('text-white', 'bg-neutral-800');
                 document.getElementById('btn-upload').classList.remove('text-neutral-400', 'hover:text-white', 'hover:bg-neutral-800/50');
-                prepareUploadView();
             } else if (viewName === 'coins') {
                 document.getElementById('view-coins').classList.remove('hidden');
                 document.getElementById('btn-coins').classList.add('text-white', 'bg-neutral-800');
@@ -1130,15 +1102,8 @@
             const paymentType = document.querySelector('input[name="payment-type"]:checked').value;
             const costInput = document.getElementById('beat-cost').value;
 
-            const canSellForCoins = isTrueOwner || currentUser.isTrueAdmin || currentUser.isVerifiedBeatMaker;
-
             let finalCost = 0;
             if (paymentType === 'coins') {
-                if (!canSellForCoins) {
-                    hideToast();
-                    showErrorToast("Um Beats für Beat Coins zu verkaufen, kaufe dir eine höhere Verifizierung.");
-                    return;
-                }
                 finalCost = parseInt(costInput);
                 if (isNaN(finalCost) || finalCost < 1 || finalCost > 900) {
                     hideToast();
@@ -1160,7 +1125,6 @@
                         audioName: audioFile.name,
                         coverData: eCover.target.result,
                         cost: finalCost,
-                        uploader: currentUser.username,
                         purchasedBy: ["placeholder_init"]
                     };
 
@@ -1641,6 +1605,106 @@
                 renderResetVerifyList();
                 if (currentUser && currentUser.username === username) {
                     currentUser.verificationPending = false;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateBuyVerificationUI();
+                }
+            }
+        };
+
+        let statusChangeListVisible = false;
+        let statusChangeOpenUser = null;
+
+        window.toggleStatusChangeList = function() {
+            statusChangeListVisible = !statusChangeListVisible;
+            const list = document.getElementById('status-change-list');
+            if (statusChangeListVisible) {
+                renderStatusChangeList();
+                list.classList.remove('hidden');
+            } else {
+                list.classList.add('hidden');
+                document.getElementById('status-change-empty').classList.add('hidden');
+                statusChangeOpenUser = null;
+            }
+        };
+
+        window.toggleStatusChangeUser = function(username) {
+            statusChangeOpenUser = (statusChangeOpenUser === username) ? null : username;
+            renderStatusChangeList();
+        };
+
+        function renderStatusChangeList() {
+            if (!statusChangeListVisible) return;
+            const list = document.getElementById('status-change-list');
+            const emptyMsg = document.getElementById('status-change-empty');
+            if (!list) return;
+
+            list.innerHTML = '';
+            const pendingUsers = users.filter(u => u.verificationPending);
+
+            if (pendingUsers.length === 0) {
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                pendingUsers.forEach(user => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "bg-neutral-900 border border-neutral-800/80 rounded-2xl overflow-hidden";
+
+                    const isOpen = statusChangeOpenUser === user.username;
+                    const currentStatus = user.verificationStatusText || "";
+
+                    wrapper.innerHTML = `
+                        <button onclick="toggleStatusChangeUser('${user.username}')" class="w-full flex items-center gap-3 p-4 text-left apple-transition hover:bg-neutral-800/40">
+                            <img src="${user.avatar}" class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800">
+                            <div class="flex-1">
+                                <p class="font-bold text-white">${user.username}</p>
+                                <p class="text-xs text-neutral-500">${currentStatus ? 'Status: ' + currentStatus : 'Kein eigener Status gesetzt'}</p>
+                            </div>
+                            <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 text-neutral-500"></i>
+                        </button>
+                        ${isOpen ? `
+                        <div class="p-4 pt-0 space-y-3">
+                            <input type="text" id="status-input-${user.username}" placeholder="Status Text eingeben..." value="${currentStatus.replace(/"/g, '&quot;')}" class="w-full bg-neutral-950 text-sm px-4 py-3 rounded-xl border border-neutral-800 focus:outline-none focus:border-blue-500 text-white">
+                            <div class="flex gap-2">
+                                <button onclick="saveStatusText('${user.username}')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl apple-transition">Speichern</button>
+                                <button onclick="resetStatusText('${user.username}')" class="px-4 py-2.5 rounded-xl text-sm font-semibold border border-neutral-800 hover:border-red-500/50 hover:text-red-500 apple-transition">Reset</button>
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+                    list.appendChild(wrapper);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        window.saveStatusText = async function(username) {
+            const input = document.getElementById(`status-input-${username}`);
+            if (!input) return;
+            const text = input.value.trim();
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.verificationStatusText = text;
+                await set(ref(db, `users/${username}/verificationStatusText`), text);
+                showSuccessToast(`Status für ${username} gespeichert.`);
+                renderStatusChangeList();
+                if (currentUser && currentUser.username === username) {
+                    currentUser.verificationStatusText = text;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateBuyVerificationUI();
+                }
+            }
+        };
+
+        window.resetStatusText = async function(username) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.verificationStatusText = "";
+                await set(ref(db, `users/${username}/verificationStatusText`), "");
+                showSuccessToast(`Status für ${username} zurückgesetzt.`);
+                renderStatusChangeList();
+                if (currentUser && currentUser.username === username) {
+                    currentUser.verificationStatusText = "";
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     updateBuyVerificationUI();
                 }
